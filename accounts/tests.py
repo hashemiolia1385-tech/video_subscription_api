@@ -179,16 +179,13 @@ class JWTAuthenticationAPITest(APITestCase):
         refresh = RefreshToken.for_user(self.user)
         access = refresh.access_token
 
-        # هدر احراز هویت کاربر لاگین‌شده
         self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {access}")
 
-        # لاگ‌اوت
         response = self.client.post(
             self.logout_url, {"refresh": str(refresh)}, format="json"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        # تلاش برای استفاده مجدد از رفرش توکن بلک‌لیست‌شده باید با شکست روبرو شود
         refresh_attempt = self.client.post(
             self.refresh_url, {"refresh": str(refresh)}, format="json"
         )
@@ -230,16 +227,13 @@ class JWTAuthenticationAPITest(APITestCase):
         refresh = RefreshToken.for_user(self.user)
         access = refresh.access_token
 
-        # هدر احراز هویت کاربر لاگین‌شده
         self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {access}")
 
-        # لاگ‌اوت
         response = self.client.post(
             self.logout_url, {"refresh": str(refresh)}, format="json"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        # تلاش برای استفاده مجدد از رفرش توکن بلک‌لیست‌شده باید با شکست روبرو شود
         refresh_attempt = self.client.post(
             self.refresh_url, {"refresh": str(refresh)}, format="json"
         )
@@ -255,7 +249,6 @@ class UserProfileAPITest(APITestCase):
             password="StrongPassword123!",
             first_name="Ali",
         )
-        # تنظیم موجودی تستی روی کیف پول خودکار ایجاد شده
         self.user.wallet.balance = 50000.00
         self.user.wallet.save()
 
