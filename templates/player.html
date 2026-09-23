@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ video.title }} | استریم ویدیو</title>
+    <style>
+        body {
+            background-color: #141414;
+            color: #ffffff;
+            font-family: system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            max-width: 900px;
+            width: 100%;
+        }
+        .video-box {
+            position: relative;
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+        video {
+            width: 100%;
+            max-height: 520px;
+            display: block;
+        }
+        .info-box {
+            margin-top: 20px;
+            background: #1f1f1f;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .badge-free { background-color: #28a745; }
+        .badge-premium { background-color: #e50914; }
+        .credits {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #bbb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>{{ video.title }}</h1>
+        <div class="video-box">
+            <video controls preload="metadata"{% if video.thumbnail %} poster="{{ video.thumbnail.url }}"{% endif %}>
+                <source src="{{ video.video_url }}" type="video/mp4">
+                مرورگر شما از پخش ویدیو پشتیبانی نمی‌کند.
+            </video>
+        </div>
+
+        <div class="info-box">
+            {% if video.required_plan %}
+                <span class="badge badge-premium">نیازمند اشتراک: {{ video.required_plan.name }}</span>
+            {% else %}
+                <span class="badge badge-free">رایگان برای همه</span>
+            {% endif %}
+            <p><strong>ژانر:</strong> {{ video.genre }} | <strong>مدت زمان:</strong> {{ video.duration }} ثانیه</p>
+            <p>{{ video.description }}</p>
+
+            <div class="credits">
+                <strong>عوامل فیلم:</strong>
+                <ul>
+                    {% for credit in video.credits.all %}
+                        <li>{{ credit.person.full_name }} به عنوان {{ credit.get_role_type_display }}{% if credit.character_name %} (نقش: {{ credit.character_name }}){% endif %}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
