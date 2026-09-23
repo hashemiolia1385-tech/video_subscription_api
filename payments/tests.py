@@ -157,16 +157,19 @@ class TransactionHistoryAPITest(APITestCase):
     def test_get_transaction_history_only_returns_own_records(self):
         response = self.client.get(self.history_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 3)
+        results = response.data.get("results", response.data)
+        self.assertEqual(len(results), 3)
 
     def test_filter_transactions_by_type(self):
         response = self.client.get(f"{self.history_url}?type=payment")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]["type"], "payment")
+        results = response.data.get("results", response.data)
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0]["type"], "payment")
 
     def test_filter_transactions_by_status(self):
         response = self.client.get(f"{self.history_url}?status=pending")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]["status"], "pending")
+        results = response.data.get("results", response.data)
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0]["status"], "pending")

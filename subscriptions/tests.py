@@ -177,7 +177,8 @@ class MySubscriptionAPITest(APITestCase):
         self.client.force_authenticate(user=self.user)
         response = self.client.get(self.history_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 2)
+        results = response.data.get("results", response.data)
+        self.assertEqual(len(results), 2)
 
 
 class SubscriptionActionsAPITest(APITestCase):
