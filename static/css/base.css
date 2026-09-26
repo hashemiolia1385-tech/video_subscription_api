@@ -1,0 +1,507 @@
+/* =========================================================
+   VINORA — BASE / GLOBAL DESIGN SYSTEM
+   Shared by every page (loaded from base.html)
+   ========================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800;900&display=swap');
+
+:root {
+
+    /* Brand — pulled straight from the logo */
+    --vinora-teal: #15b4b2;
+    --vinora-teal-dark: #109c9a;
+    --vinora-teal-light: #5fd6d4;
+    --vinora-coral: #fa9687;
+    --vinora-coral-dark: #f07a68;
+    --vinora-coral-light: #ffb8ad;
+
+    /* Surfaces (dark, cinematic default) */
+    --bg: #070a12;
+    --bg-elevated: #0b0f1a;
+    --surface: #10141f;
+    --surface-2: #151b2a;
+    --surface-card: #131826;
+    --border: rgba(255, 255, 255, 0.08);
+    --border-strong: rgba(255, 255, 255, 0.14);
+
+    --text: #f3f5f8;
+    --text-dim: #c4cad6;
+    --muted: #8b93a7;
+
+    --gold: #f5b942;
+    --danger: #ef4444;
+    --success: #22c55e;
+
+    --radius-sm: 10px;
+    --radius-md: 16px;
+    --radius-lg: 24px;
+    --radius-xl: 32px;
+    --radius-pill: 999px;
+
+    --container: 1320px;
+    --header-h: 88px;
+
+    --transition: 220ms cubic-bezier(0.4, 0, 0.2, 1);
+
+    --glow-teal: rgba(21, 180, 178, 0.4);
+    --glow-coral: rgba(250, 150, 135, 0.4);
+
+    color-scheme: dark;
+}
+
+
+/* =========================================================
+   LIGHT THEME — same tokens, flipped surfaces
+   ========================================================= */
+
+:root[data-theme="light"] {
+
+    --bg: #f4f7f8;
+    --bg-elevated: #ffffff;
+    --surface: #ffffff;
+    --surface-2: #eef2f4;
+    --surface-card: #ffffff;
+    --border: rgba(10, 30, 35, 0.09);
+    --border-strong: rgba(10, 30, 35, 0.16);
+
+    --text: #0d1420;
+    --text-dim: #364152;
+    --muted: #5c6a7d;
+
+    color-scheme: light;
+}
+
+
+/* =========================================================
+   RESET
+   ========================================================= */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    scroll-behavior: smooth;
+    scroll-padding-top: calc(var(--header-h) + 16px);
+}
+
+body {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: "Vazirmatn", system-ui, "Segoe UI", Tahoma, Arial, sans-serif;
+    line-height: 1.75;
+    direction: rtl;
+    overflow-x: hidden;
+    transition: background-color 300ms ease, color 300ms ease;
+}
+
+a { color: inherit; text-decoration: none; }
+button, input, select { font: inherit; color: inherit; }
+img { display: block; max-width: 100%; }
+ul { list-style: none; }
+
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--vinora-teal); }
+
+
+/* =========================================================
+   SITE-WIDE BACKGROUND HALO — teal + coral glow
+   (fixed, sits behind every page, dims nicely in light mode)
+   ========================================================= */
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+        radial-gradient(700px 500px at 85% -6%, var(--glow-teal), transparent 60%),
+        radial-gradient(650px 550px at -8% 24%, var(--glow-coral), transparent 60%),
+        radial-gradient(900px 700px at 50% 115%, rgba(21, 180, 178, 0.18), transparent 65%),
+        var(--bg);
+    opacity: 0.9;
+}
+
+:root[data-theme="light"] body::before {
+    background:
+        radial-gradient(700px 500px at 85% -6%, rgba(21, 180, 178, 0.18), transparent 60%),
+        radial-gradient(650px 550px at -8% 24%, rgba(250, 150, 135, 0.22), transparent 60%),
+        radial-gradient(900px 700px at 50% 115%, rgba(21, 180, 178, 0.10), transparent 65%),
+        var(--bg);
+    opacity: 1;
+}
+
+
+/* =========================================================
+   BUTTONS
+   ========================================================= */
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    border: none;
+    cursor: pointer;
+    font-weight: 700;
+    font-family: inherit;
+    border-radius: var(--radius-sm);
+    transition: transform var(--transition), box-shadow var(--transition), background-color var(--transition), border-color var(--transition), color var(--transition);
+    white-space: nowrap;
+}
+
+.btn:hover { transform: translateY(-2px); }
+
+.btn-primary {
+    color: #04201f;
+    background: linear-gradient(135deg, var(--vinora-teal), var(--vinora-teal-dark));
+    box-shadow: 0 10px 28px var(--glow-teal);
+    padding: 0.75rem 1.6rem;
+}
+
+.btn-primary:hover { box-shadow: 0 14px 34px var(--glow-teal); }
+
+.btn-accent {
+    color: #2a0f0a;
+    background: linear-gradient(135deg, var(--vinora-coral), var(--vinora-coral-dark));
+    box-shadow: 0 10px 28px var(--glow-coral);
+    padding: 0.75rem 1.6rem;
+}
+
+.btn-outline {
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border-strong);
+    padding: 0.72rem 1.5rem;
+}
+
+.btn-outline:hover { border-color: var(--vinora-teal); color: var(--vinora-teal); }
+
+.btn-sm { padding: 0.5rem 1.1rem; font-size: 0.85rem; }
+.btn-block { width: 100%; }
+
+
+/* =========================================================
+   NAVBAR
+   ========================================================= */
+
+.vinora-navbar {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    height: var(--header-h);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 0 clamp(16px, 4vw, 48px);
+    background: linear-gradient(to bottom, rgba(7, 10, 18, 0.92), rgba(7, 10, 18, 0.78));
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    transition: background-color 300ms ease, border-color 300ms ease;
+}
+
+:root[data-theme="light"] .vinora-navbar {
+    background: linear-gradient(to bottom, rgba(244, 247, 248, 0.94), rgba(244, 247, 248, 0.82));
+}
+
+.navbar-start { display: flex; align-items: center; gap: 44px; min-width: 0; }
+
+.brand-wrapper { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+
+/* لوگو با سایز واقعی و مناسب در هدر */
+.vinora-brand-logo {
+    height: 46px;
+    width: auto;
+    display: block;
+    transition: transform var(--transition);
+}
+
+.brand-wrapper:hover .vinora-brand-logo { transform: scale(1.04); }
+
+.brand-wordmark {
+    font-size: 1.28rem;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+    background: linear-gradient(90deg, var(--vinora-teal), var(--vinora-coral));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+}
+
+.nav-links a {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--muted);
+    transition: color var(--transition);
+}
+
+.nav-links a:hover { color: var(--text); }
+
+.nav-links a.active { color: var(--vinora-teal); }
+
+.nav-links a i { font-size: 1rem; color: var(--vinora-teal); opacity: 0.9; }
+
+.navbar-end { display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
+
+/* سوییچ تم */
+.theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    user-select: none;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-pill);
+    padding: 6px 10px;
+}
+
+.theme-toggle input { display: none; }
+
+.theme-toggle .icon { font-size: 0.95rem; line-height: 1; color: var(--muted); }
+
+.theme-toggle .track {
+    position: relative;
+    width: 38px;
+    height: 20px;
+    border-radius: var(--radius-pill);
+    background: rgba(255, 255, 255, 0.12);
+    transition: var(--transition);
+}
+
+.theme-toggle .thumb {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--vinora-teal);
+    transition: var(--transition);
+}
+
+.theme-toggle input:checked ~ .track .thumb { right: 20px; background: var(--vinora-coral); }
+
+.auth-btns-group { display: flex; align-items: center; gap: 10px; }
+
+/* منوی کاربر لاگین‌شده */
+.user-menu-container { position: relative; display: none; align-items: center; }
+
+.user-avatar-btn {
+    background: none;
+    border: 2px solid var(--border-strong);
+    border-radius: 50%;
+    cursor: pointer;
+    padding: 2px;
+    display: flex;
+    transition: var(--transition);
+}
+
+.user-avatar-btn:hover { border-color: var(--vinora-teal); box-shadow: 0 0 12px var(--glow-teal); }
+
+.user-avatar-img { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; background: var(--surface); }
+
+.user-dropdown-menu {
+    position: absolute;
+    top: 54px;
+    left: 0;
+    width: 220px;
+    background: var(--surface-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.5);
+    display: none;
+    flex-direction: column;
+    padding: 8px 0;
+    z-index: 1100;
+}
+
+.user-dropdown-menu.active { display: flex; animation: fadeInDown 0.18s ease; }
+
+@keyframes fadeInDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+
+.user-dropdown-menu a, .user-dropdown-menu button {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    font-size: 0.88rem;
+    text-align: right;
+    width: 100%;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.user-dropdown-menu a:hover, .user-dropdown-menu button:hover { background: rgba(21, 180, 178, 0.1); color: var(--vinora-teal); }
+.user-dropdown-menu hr { margin: 6px 0; border: none; border-top: 1px solid var(--border); }
+
+/* منوی موبایل */
+.nav-burger {
+    display: none;
+    width: 42px;
+    height: 42px;
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    cursor: pointer;
+}
+
+.mobile-nav-panel {
+    position: fixed;
+    inset: var(--header-h) 0 0 0;
+    background: var(--bg-elevated);
+    z-index: 999;
+    padding: 24px;
+    display: none;
+    flex-direction: column;
+    gap: 6px;
+    overflow-y: auto;
+}
+
+.mobile-nav-panel.open { display: flex; }
+
+.mobile-nav-panel a {
+    padding: 14px 10px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.mobile-nav-panel a i { color: var(--vinora-teal); }
+
+.mobile-nav-actions { display: flex; gap: 10px; margin-top: 20px; }
+
+
+/* =========================================================
+   MAIN + FOOTER
+   ========================================================= */
+
+main.vinora-content { flex: 1; width: 100%; }
+
+.vinora-footer {
+    position: relative;
+    z-index: 1;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 3rem clamp(16px, 4vw, 48px) 1.6rem;
+    margin-top: auto;
+}
+
+.footer-inner {
+    max-width: var(--container);
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr 1fr;
+    gap: 32px;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.footer-brand { display: flex; flex-direction: column; gap: 12px; }
+.footer-brand img { height: 34px; }
+.footer-brand p { color: var(--muted); font-size: 0.85rem; max-width: 320px; line-height: 1.9; }
+
+.footer-social { display: flex; gap: 10px; margin-top: 6px; }
+.footer-social a {
+    width: 36px; height: 36px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    transition: var(--transition);
+}
+.footer-social a:hover { color: #fff; background: var(--vinora-teal); border-color: var(--vinora-teal); }
+
+.footer-col h4 { font-size: 0.95rem; margin-bottom: 14px; color: var(--text); }
+.footer-col a { display: block; color: var(--muted); font-size: 0.86rem; margin-bottom: 10px; transition: var(--transition); }
+.footer-col a:hover { color: var(--vinora-teal); }
+
+.footer-bottom {
+    max-width: var(--container);
+    margin: 0 auto;
+    padding-top: 1.4rem;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    color: var(--muted);
+    font-size: 0.78rem;
+}
+
+
+/* =========================================================
+   SHARED UTILITIES (used across pages)
+   ========================================================= */
+
+.section-container { width: min(calc(100% - 32px), var(--container)); margin-inline: auto; }
+
+.section-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--vinora-teal);
+    background: rgba(21, 180, 178, 0.1);
+    border: 1px solid rgba(21, 180, 178, 0.3);
+    padding: 6px 16px;
+    border-radius: var(--radius-pill);
+}
+
+.section-label.coral {
+    color: var(--vinora-coral);
+    background: rgba(250, 150, 135, 0.12);
+    border-color: rgba(250, 150, 135, 0.35);
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1080px) {
+    .nav-links { display: none; }
+    .nav-burger { display: flex; }
+    .navbar-start { gap: 20px; }
+}
+
+@media (max-width: 720px) {
+    :root { --header-h: 72px; }
+    .vinora-brand-logo { height: 38px; }
+    .footer-inner { grid-template-columns: 1fr 1fr; }
+    .theme-toggle .icon:first-child { display: none; }
+}
+
+@media (max-width: 480px) {
+    .footer-inner { grid-template-columns: 1fr; }
+    .footer-bottom { flex-direction: column; }
+}

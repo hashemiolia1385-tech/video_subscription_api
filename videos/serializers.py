@@ -67,6 +67,7 @@ class VideoDetailSerializer(serializers.ModelSerializer):
     is_free = serializers.SerializerMethodField()
     can_watch = serializers.SerializerMethodField()
     average_rating = serializers.SerializerMethodField()
+    thumbnail = serializers.SerializerMethodField()
 
     class Meta:
         model = Video
@@ -115,7 +116,24 @@ class VideoDetailSerializer(serializers.ModelSerializer):
 
     def get_average_rating(self, obj):
         avg = obj.reviews.aggregate(avg_score=Avg("rating"))["avg_score"]
-        return round(avg, 1) if avg else None
+        return round(avg, 1) if avg else 0.0
+
+    def get_thumbnail(self, obj):
+        if not obj.thumbnail:
+            return None
+        thumb_str = str(obj.thumbnail)
+        # اصلاح مسیرهای ذخیره‌شده در static/img بدون اضافه شدن پیشوند /media/
+        if "static/img/" in thumb_str:
+            idx = thumb_str.find("/static/img/")
+            if idx != -1:
+                return thumb_str[idx:]
+            return f"/static/img/{thumb_str.split('/')[-1]}"
+        if thumb_str.startswith("http://") or thumb_str.startswith("https://"):
+            return thumb_str
+        request = self.context.get("request")
+        if request and hasattr(obj.thumbnail, "url"):
+            return request.build_absolute_uri(obj.thumbnail.url)
+        return getattr(obj.thumbnail, "url", thumb_str)
 
 
 class WatchProgressSerializer(serializers.Serializer):

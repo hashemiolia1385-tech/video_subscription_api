@@ -1,0 +1,99 @@
+/* =========================================================
+   VINORA — MOVIES / CATALOG PAGE
+   ========================================================= */
+
+.catalog-header {
+    padding: 54px 0 30px;
+    text-align: center;
+}
+
+.catalog-header h1 { font-size: clamp(1.6rem, 3.4vw, 2.2rem); font-weight: 900; margin: 14px 0 8px; }
+.catalog-header p { color: var(--muted); font-size: 0.98rem; }
+
+.catalog-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: center;
+    justify-content: space-between;
+    margin: 28px 0 8px;
+}
+
+.search-box {
+    position: relative;
+    flex: 1 1 320px;
+    max-width: 420px;
+}
+
+.search-box i {
+    position: absolute;
+    top: 50%; right: 16px;
+    transform: translateY(-50%);
+    color: var(--muted);
+}
+
+.search-box input {
+    width: 100%;
+    padding: 0.85rem 2.6rem 0.85rem 1rem;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--border);
+    background: var(--surface-card);
+    color: var(--text);
+}
+
+.search-box input:focus { outline: none; border-color: var(--vinora-teal); box-shadow: 0 0 0 3px var(--glow-teal); }
+
+.genre-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.genre-chip {
+    padding: 0.5rem 1.1rem;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--border);
+    background: var(--surface-card);
+    color: var(--muted);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    white-space: nowrap;
+}
+
+.genre-chip:hover { border-color: var(--vinora-teal); color: var(--text); }
+
+.genre-chip.active {
+    color: #04201f;
+    background: linear-gradient(90deg, var(--vinora-teal), var(--vinora-coral));
+    border-color: transparent;
+}
+
+.catalog-count { color: var(--muted); font-size: 0.85rem; margin: 18px 0 18px; }
+
+.movies-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 22px;
+    padding-bottom: 70px;
+}
+
+.movies-grid .movie-card { width: 100%; }
+.movies-grid .movie-poster-box { height: 262px; }
+
+.catalog-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: var(--muted);
+    padding: 60px 10px;
+}
+
+.catalog-state i { font-size: 2rem; color: var(--vinora-teal); display: block; margin-bottom: 12px; }
+
+@media (max-width: 640px) {
+    .catalog-toolbar { flex-direction: column; align-items: stretch; }
+    .search-box { max-width: none; }
+    .movies-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 14px; }
+    .movies-grid .movie-poster-box { height: 200px; }
+}

@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}فیلم‌ها و سریال‌ها | وینورا{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/movies.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="section-container">
+
+    <div class="catalog-header">
+        <span class="section-label"><i class="bi bi-film"></i> آرشیو وینورا</span>
+        <h1>فیلم‌ها و سریال‌ها</h1>
+        <p>در میان تمام آثار وینورا جستجو کن یا با انتخاب ژانر، دقیق‌تر بگرد.</p>
+    </div>
+
+    <div class="catalog-toolbar">
+        <div class="search-box">
+            <i class="bi bi-search"></i>
+            <input type="text" id="searchInput" placeholder="جستجو بر اساس نام یا توضیحات فیلم...">
+        </div>
+        <div class="genre-filters" id="genreFilters">
+            <button class="genre-chip active" data-genre="">همه</button>
+        </div>
+    </div>
+
+    <p class="catalog-count" id="resultCount"></p>
+
+    <div class="movies-grid" id="moviesGrid">
+        <div class="catalog-state"><i class="bi bi-hourglass-split"></i> در حال بارگذاری آثار...</div>
+    </div>
+
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    const FALLBACK_POSTER = "{% static 'img/Fight_Club.jpg' %}";
+    const grid = document.getElementById('moviesGrid');
+    const resultCount = document.getElementById('resultCount');
+    const genreFiltersEl = document.getElementById('genreFilters');
+
+    let allGenres = new Set();
+    let currentSearch = '';
+    let currentGenre = '';
+    let searchDebounce = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadCatalog();
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            currentSearch = e.target.value.trim();
+            clearTimeout(searchDebounce);
+            searchDebounce = setTimeout(() => loadCatalog(false), 350);
+        });
+    });
+
+    function buildQuery() {
+        const params = new URLSearchParams();
+        if (currentSearch) params.set('search', currentSearch);
+        if (currentGenre) params.set('genre', currentGenre);
+        return params.toString();
+    }
+
+    async function loadCatalog(collectGenres = true) {
+        grid.innerHTML = '<div class="catalog-state"><i class="bi bi-hourglass-split"></i> در حال بارگذاری آثار...</div>';
+        try {
+            const query = buildQuery();
+            const res = await fetch(`/api/videos/${query ? '?' + query : ''}`);
+            if (!res.ok) throw new Error();
+            const raw = await res.json();
+            const videos = Array.isArray(raw) ? raw : (raw.results || []);
+
+            if (collectGenres) {
+                videos.forEach(v => { if (v.genre) allGenres.add(v.genre); });
+                renderGenreChips();
+            }
+
+            renderMovies(videos);
+        } catch (e) {
+            grid.innerHTML = '<div class="catalog-state"><i class="bi bi-exclamation-triangle"></i> خطا در دریافت فهرست فیلم‌ها.</div>';
+        }
+    }
+
+    function renderGenreChips() {
+        genreFiltersEl.innerHTML = '';
+        const allBtn = document.createElement('button');
+        allBtn.className = 'genre-chip' + (currentGenre === '' ? ' active' : '');
+        allBtn.textContent = 'همه';
+        allBtn.onclick = () => selectGenre('', allBtn);
+        genreFiltersEl.appendChild(allBtn);
+
+        [...allGenres].sort().forEach(g => {
+            const btn = document.createElement('button');
+            btn.className = 'genre-chip' + (currentGenre === g ? ' active' : '');
+            btn.textContent = g;
+            btn.onclick = () => selectGenre(g, btn);
+            genreFiltersEl.appendChild(btn);
+        });
+    }
+
+    function selectGenre(genre, btnEl) {
+        currentGenre = genre;
+        [...genreFiltersEl.children].forEach(c => c.classList.remove('active'));
+        btnEl.classList.add('active');
+        loadCatalog(false);
+    }
+
+    function renderMovies(videos) {
+        if (!videos || videos.length === 0) {
+            grid.innerHTML = '<div class="catalog-state"><i class="bi bi-emoji-frown"></i> نتیجه‌ای برای این جستجو پیدا نشد.</div>';
+            resultCount.textContent = '';
+            return;
+        }
+
+        resultCount.textContent = `${videos.length.toLocaleString('fa-IR')} عنوان یافت شد`;
+        grid.innerHTML = '';
+        videos.forEach(v => {
+            const card = document.createElement('a');
+            card.href = `/player/${v.id}/`;
+            card.className = 'movie-card';
+
+            const rating = (v.average_rating && Number(v.average_rating) > 0) ? Number(v.average_rating).toFixed(1) : '—';
+            const badge = v.is_free
+                ? '<div class="plan-badge free">رایگان</div>'
+                : '<div class="plan-badge">اشتراکی</div>';
+
+            card.innerHTML = `
+                <div class="movie-poster-box">
+                    <img src="${v.thumbnail || FALLBACK_POSTER}" alt="${v.title}" loading="lazy" onerror="this.onerror=null;this.src='${FALLBACK_POSTER}';">
+                    <div class="rating-badge"><i class="bi bi-star-fill"></i> ${rating}</div>
+                    ${badge}
+                </div>
+                <div class="movie-info">
+                    <div class="movie-title" title="${v.title}">${v.title}</div>
+                    <div class="movie-genre">${v.genre || 'سینمایی'}</div>
+                </div>
+            `;
+            grid.appendChild(card);
+        });
+    }
+</script>
+{% endblock %}

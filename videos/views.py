@@ -4,6 +4,9 @@ from rest_framework.generics import ListAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
+from django.db.models import Avg
 from subscriptions.permissions import IsAdminOrReadOnly
 from .models import Video, WatchHistory, Review
 from .serializers import (
@@ -44,6 +47,23 @@ class VideoViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(genre__icontains=genre)
         return queryset
 
+    @action(detail=False, methods=["get"], permission_classes=[AllowAny])
+    def top_rated(self, request):
+        """
+        دریافت تمامی فیلم‌های اولیه برای اسلایدر لندینگ پیج با نمره پیش‌فرض 0.0
+        """
+        from django.db.models import Avg
+        from django.db.models.functions import Coalesce
+        from django.db.models import Value, FloatField
+
+        videos = Video.objects.annotate(
+            avg_rating=Coalesce(
+                Avg("reviews__rating"), Value(0.0), output_field=FloatField()
+            )
+        ).order_by("-uploaded_at")[:15]
+        serializer = self.get_serializer(videos, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
     @action(detail=True, methods=["get"], permission_classes=[CanWatchVideo])
     def stream(self, request, pk=None):
         """
@@ -73,7 +93,7 @@ class VideoViewSet(viewsets.ModelViewSet):
         progress_seconds = serializer.validated_data["progress"]
         is_completed = progress_seconds >= (video.duration * 0.9)
 
-        watch_history, _ = WatchHistory.objects.update_or_create(
+        watch_history, created = WatchHistory.objects.update_or_create(
             user=request.user,
             video=video,
             defaults={
@@ -81,6 +101,17 @@ class VideoViewSet(viewsets.ModelViewSet):
                 "is_completed": is_completed,
             },
         )
+
+        if created:
+            channel_layer = get_channel_layer()
+            total_views = WatchHistory.objects.filter(video=video).count()
+            async_to_sync(channel_layer.group_send)(
+                f"video_comments_{video.id}",
+                {
+                    "type": "video_view_updated",
+                    "total_views": total_views,
+                },
+            )
 
         return Response(
             {
@@ -117,6 +148,19 @@ class VideoViewSet(viewsets.ModelViewSet):
                 user=request.user,
                 video=video,
                 defaults={"rating": rating, "comment": comment},
+            )
+
+            avg_rating = video.reviews.aggregate(avg=Avg("rating"))["avg"] or 0.0
+            total_reviews = video.reviews.count()
+
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f"video_comments_{video.id}",
+                {
+                    "type": "video_rating_updated",
+                    "average_rating": round(avg_rating, 1),
+                    "total_reviews": total_reviews,
+                },
             )
 
             res_serializer = ReviewSerializer(review)

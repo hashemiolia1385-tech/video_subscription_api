@@ -1,0 +1,284 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}وینورا | دنیای بی‌پایان فیلم و سریال{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/landing.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<!-- ============================== ۱. هیرو ============================== -->
+<section class="hero" id="home">
+    <div class="hero-inner">
+        <span class="section-label"><i class="bi bi-broadcast"></i> استریم بلادرنگ با تکنولوژی اختصاصی وینورا</span>
+
+        <h1 class="hero-title">
+            هر داستانی که دنبالش بودی،<br>
+            همین‌جاست؛ روی <span class="grad">وینورا</span>.
+        </h1>
+
+        <p class="hero-desc">
+            آرشیو کامل فیلم و سریال را با کیفیت Full HD و 4K تماشا کن، یا در اتاق‌های
+            واچ‌پارتی همزمان با دوستانت فیلم ببین و لحظه‌به‌لحظه گفتگو کن.
+        </p>
+
+        <div class="hero-actions">
+            <a href="{% url 'vinora-movies' %}" class="btn btn-primary">
+                <i class="bi bi-play-fill"></i> شروع تماشا
+            </a>
+            <a href="#plansSection" class="btn btn-outline">
+                <i class="bi bi-gem"></i> مشاهده اشتراک‌ها
+            </a>
+        </div>
+
+        <div class="hero-stats">
+            <div class="hero-stat"><strong>+۱۰</strong><span>فیلم و سریال منتخب</span></div>
+            <div class="hero-stat"><strong>4K</strong><span>کیفیت اولترا اچ‌دی</span></div>
+            <div class="hero-stat"><strong>زنده</strong><span>واچ‌پارتی ریل‌تایم</span></div>
+        </div>
+
+        <!-- ویترین شناور پوستر فیلم‌ها -->
+        <div class="hero-showcase" aria-hidden="true">
+            <div class="showcase-poster sp-1"><img src="{% static 'img/Interstellar.jpeg' %}" alt=""></div>
+            <div class="showcase-poster sp-3"><img src="{% static 'img/The_Matrix.png' %}" alt=""></div>
+            <div class="showcase-poster sp-2">
+                <img src="{% static 'img/The_Dark_Knight.jpg' %}" alt="">
+                <span class="showcase-badge"><i class="bi bi-star-fill"></i> 9.0</span>
+            </div>
+            <div class="showcase-poster sp-4"><img src="{% static 'img/Gladiator.png' %}" alt=""></div>
+            <div class="showcase-poster sp-5"><img src="{% static 'img/Inception.jpeg' %}" alt=""></div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================== ۲. اسلایدر فیلم‌ها ============================== -->
+<section class="movies-section section-container" id="moviesCatalog">
+    <div class="section-heading split">
+        <div>
+            <span class="section-label coral"><i class="bi bi-fire"></i> پرطرفدارترین‌ها</span>
+            <h2>محبوب‌ترین فیلم‌ها و سریال‌های وینورا</h2>
+        </div>
+        <div class="carousel-nav">
+            <button class="carousel-nav-btn" onclick="slideCarousel('right')" aria-label="بعدی"><i class="bi bi-chevron-right"></i></button>
+            <button class="carousel-nav-btn" onclick="slideCarousel('left')" aria-label="قبلی"><i class="bi bi-chevron-left"></i></button>
+        </div>
+    </div>
+
+    <div class="carousel-container">
+        <div id="topVideosTrack" class="carousel-track">
+            <div class="carousel-msg">در حال دریافت فیلم‌های برتر...</div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================== ۳. امکانات ============================== -->
+<section class="features-section section-container" id="featuresSection">
+    <div class="section-heading">
+        <span class="section-label"><i class="bi bi-grid"></i> امکانات وینورا</span>
+        <h2>تجربه‌ای که فقط مخصوص وینوراست</h2>
+        <p>هرچیزی که برای یک تجربه تماشای واقعی و مدرن لازم داری، همین‌جا جمع شده.</p>
+    </div>
+
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon"><i class="bi bi-people-fill"></i></div>
+            <h3>واچ‌پارتی ریل‌تایم</h3>
+            <p>فیلم را با دوستانت هم‌زمان تماشا کن؛ پخش، توقف و پیشروی با سوکت‌های اختصاصی صددرصد همگام می‌ماند.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon"><i class="bi bi-badge-4k-fill"></i></div>
+            <h3>استریم بدون وقفه</h3>
+            <p>پخش پرسرعت با پشتیبانی از Range Request برای شروع فوری فیلم، بدون بافر و لودینگ طولانی.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon"><i class="bi bi-wallet2"></i></div>
+            <h3>کیف پول و تمدید خودکار</h3>
+            <p>کیف پول داخلی را شارژ کن و بدون دغدغه، تمدید اشتراکت را به‌صورت خودکار بسپار به وینورا.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon"><i class="bi bi-star-fill"></i></div>
+            <h3>امتیاز و نقد زنده</h3>
+            <p>نظرت را برای هر عنوان ثبت کن؛ میانگین امتیازها همان لحظه برای همه به‌روزرسانی می‌شود.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ============================== ۴. اشتراک‌ها ============================== -->
+<section class="pricing-section section-container" id="plansSection">
+    <div class="section-heading">
+        <span class="section-label coral"><i class="bi bi-gem"></i> اشتراک وینورا</span>
+        <h2>پلن مناسب خودت را انتخاب کن</h2>
+        <p>بدون محدودیت وارد دنیای وینورا شو و از همان لحظه اول، آرشیو کامل در اختیارت است.</p>
+    </div>
+
+    <div id="plansContainer" class="pricing-grid">
+        <div class="pricing-msg">در حال بارگذاری پلن‌های اشتراک...</div>
+    </div>
+</section>
+
+<!-- ============================== ۵. سوالات متداول ============================== -->
+<section class="faq-section section-container" id="faqSection">
+    <div class="section-heading">
+        <span class="section-label"><i class="bi bi-question-circle"></i> سوالات متداول</span>
+        <h2>پاسخ پرسش‌های رایج شما</h2>
+    </div>
+
+    <div class="faq-list">
+        <div class="faq-item open">
+            <div class="faq-question" onclick="toggleFaq(this)">
+                <span>چگونه می‌توانم از قابلیت واچ‌پارتی استفاده کنم؟</span>
+                <i class="bi bi-chevron-down"></i>
+            </div>
+            <div class="faq-answer">کافی است در صفحه هر فیلم روی دکمه واچ‌پارتی کلیک کنی؛ یک اتاق تماشای گروهی ساخته می‌شود و لینکی به تو داده می‌شود که می‌توانی برای دوستانت بفرستی.</div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question" onclick="toggleFaq(this)">
+                <span>آیا امکان تماشا روی تلویزیون هوشمند وجود دارد؟</span>
+                <i class="bi bi-chevron-down"></i>
+            </div>
+            <div class="faq-answer">بله، پلیر وینورا کاملا ریسپانسیو و استاندارد است و روی مرورگر تلویزیون‌های هوشمند، کامپیوتر، تبلت و موبایل به‌راحتی اجرا می‌شود.</div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question" onclick="toggleFaq(this)">
+                <span>آیا برای تماشای همه فیلم‌ها نیاز به خرید اشتراک است؟</span>
+                <i class="bi bi-chevron-down"></i>
+            </div>
+            <div class="faq-answer">خیر، بخشی از عنوان‌های منتخب با برچسب «رایگان» بدون نیاز به اشتراک در دسترس‌اند. برای دسترسی نامحدود به آثار ویژه، خرید اشتراک لازم است.</div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question" onclick="toggleFaq(this)">
+                <span>چگونه کیف پول خودم را شارژ کنم؟</span>
+                <i class="bi bi-chevron-down"></i>
+            </div>
+            <div class="faq-answer">پس از ورود به حساب کاربری، با کلیک روی آواتار پروفایل و انتخاب گزینه «کیف پول»، می‌توانی موجودی را افزایش داده و برای تمدید اشتراک استفاده کنی.</div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    const FALLBACK_POSTER = "{% static 'img/Fight_Club.jpg' %}";
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadTopRatedVideos();
+        loadSubscriptionPlans();
+    });
+
+    async function loadTopRatedVideos() {
+        const track = document.getElementById('topVideosTrack');
+        try {
+            const res = await fetch('/api/videos/top_rated/');
+            if (!res.ok) throw new Error();
+            const videos = await res.json();
+
+            if (!videos || videos.length === 0) {
+                track.innerHTML = '<div class="carousel-msg">ویدیویی برای نمایش موجود نیست.</div>';
+                return;
+            }
+
+            track.innerHTML = '';
+            videos.forEach(v => {
+                const card = document.createElement('a');
+                card.href = `/player/${v.id}/`;
+                card.className = 'movie-card';
+
+                const rating = (v.average_rating && Number(v.average_rating) > 0) ? Number(v.average_rating).toFixed(1) : '—';
+                const badge = v.is_free
+                    ? '<div class="plan-badge free">رایگان</div>'
+                    : '<div class="plan-badge">اشتراکی</div>';
+
+                card.innerHTML = `
+                    <div class="movie-poster-box">
+                        <img src="${v.thumbnail || FALLBACK_POSTER}" alt="${v.title}" loading="lazy" onerror="this.onerror=null;this.src='${FALLBACK_POSTER}';">
+                        <div class="rating-badge"><i class="bi bi-star-fill"></i> ${rating}</div>
+                        ${badge}
+                    </div>
+                    <div class="movie-info">
+                        <div class="movie-title" title="${v.title}">${v.title}</div>
+                        <div class="movie-genre">${v.genre || 'سینمایی'}</div>
+                    </div>
+                `;
+                track.appendChild(card);
+            });
+        } catch (e) {
+            track.innerHTML = '<div class="carousel-msg">خطا در بارگذاری فیلم‌ها.</div>';
+        }
+    }
+
+    function slideCarousel(direction) {
+        const track = document.getElementById('topVideosTrack');
+        const amount = direction === 'left' ? 232 : -232;
+        track.scrollBy({ left: amount, behavior: 'smooth' });
+    }
+
+    async function loadSubscriptionPlans() {
+        const container = document.getElementById('plansContainer');
+        try {
+            const res = await fetch('/api/subscriptions/plans/');
+            if (!res.ok) throw new Error();
+            const raw = await res.json();
+            const plans = Array.isArray(raw) ? raw : (raw.results || []);
+
+            if (!plans || plans.length === 0) {
+                container.innerHTML = '<div class="pricing-msg">پلن اشتراکی تعریف نشده است.</div>';
+                return;
+            }
+
+            container.innerHTML = '';
+            plans.forEach((plan, idx) => {
+                const featured = plans.length > 1 && idx === 1;
+                const card = document.createElement('div');
+                card.className = `pricing-card ${featured ? 'featured' : ''}`;
+                card.innerHTML = `
+                    <h3 class="plan-name">${plan.name}</h3>
+                    <div class="plan-price">${Number(plan.price).toLocaleString('fa-IR')} <span>تومان / ${plan.duration_days} روزه</span></div>
+                    <p class="plan-desc">${plan.description || 'دسترسی کامل به آرشیو و واچ‌پارتی'}</p>
+                    <ul class="plan-features">
+                        <li><i class="bi bi-check2-circle"></i> دسترسی نامحدود به تمامی فیلم‌ها و سریال‌ها</li>
+                        <li><i class="bi bi-check2-circle"></i> تماشای همزمان در اتاق‌های واچ‌پارتی</li>
+                        <li><i class="bi bi-check2-circle"></i> پشتیبانی از کیفیت Full HD و 4K</li>
+                        <li><i class="bi bi-check2-circle"></i> بدون تبلیغات آزاردهنده</li>
+                    </ul>
+                    <button onclick="handleSubscribePlan(${plan.id})" class="btn btn-primary btn-block">انتخاب و خرید اشتراک</button>
+                `;
+                container.appendChild(card);
+            });
+        } catch (e) {
+            container.innerHTML = '<div class="pricing-msg">خطا در دریافت تعرفه‌های اشتراک.</div>';
+        }
+    }
+
+    async function handleSubscribePlan(planId) {
+        const token = localStorage.getItem(AUTH_ACCESS_KEY);
+        if (!token) {
+            alert('برای خرید اشتراک، لطفا ابتدا وارد حساب کاربری خود شو.');
+            window.location.href = '/login/';
+            return;
+        }
+        try {
+            const res = await fetch('/api/subscriptions/purchase/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ plan_id: planId, auto_renew: false })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                alert(`اشتراک با موفقیت فعال شد! انقضا: ${new Date(data.end_date).toLocaleDateString('fa-IR')}`);
+                window.location.reload();
+            } else {
+                alert(data.detail || 'خطا در ثبت اشتراک.');
+            }
+        } catch (err) {
+            alert('خطای شبکه در اتصال به سرور.');
+        }
+    }
+
+    function toggleFaq(el) {
+        el.parentElement.classList.toggle('open');
+    }
+</script>
+{% endblock %}

@@ -80,6 +80,33 @@ class VideoCommentConsumer(AsyncWebsocketConsumer):
             )
         )
 
+    async def video_rating_updated(self, event):
+        """
+        ارسال میانگین امتیاز جدید و تعداد کل نظرات به تمام کلاینت‌های متصل به اتاق ویدیو
+        """
+        await self.send(
+            text_data=json.dumps(
+                {
+                    "event_type": "rating_updated",
+                    "average_rating": event["average_rating"],
+                    "total_reviews": event["total_reviews"],
+                }
+            )
+        )
+
+    async def video_view_updated(self, event):
+        """
+        ارسال تغییر تعداد کل تماشاها و کاربران فعال به صورت زنده
+        """
+        await self.send(
+            text_data=json.dumps(
+                {
+                    "event_type": "view_updated",
+                    "total_views": event["total_views"],
+                }
+            )
+        )
+
     @database_sync_to_async
     def save_comment(self, video_id, user, text):
         try:
@@ -164,6 +191,29 @@ class WatchPartyConsumer(AsyncWebsocketConsumer):
                     "timestamp": timezone.now().isoformat(),
                 },
             )
+        if action in ["play", "pause", "seek"]:
+            current_time = data.get("current_time", 0)
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    "type": "video_sync_broadcast",
+                    "action": action,
+                    "current_time": current_time,
+                    "sender": self.user.username,
+                },
+            )
+
+    async def video_sync_broadcast(self, event):
+        await self.send(
+            text_data=json.dumps(
+                {
+                    "event_type": "video_sync",
+                    "action": event["action"],
+                    "current_time": event["current_time"],
+                    "sender": event["sender"],
+                }
+            )
+        )
 
     async def chat_broadcast(self, event):
         await self.send(

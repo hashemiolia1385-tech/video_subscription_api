@@ -9,6 +9,6 @@ from .views import (
 urlpatterns = [
     path("wallet/", WalletView.as_view(), name="wallet-detail"),
     path("deposit/request/", DepositRequestView.as_view(), name="deposit-request"),
-    path("deposit/verfity/", DepositVerifyView.as_view(), name="deposit-verify"),
+    path("deposit/verify/", DepositVerifyView.as_view(), name="deposit-verify"),
     path("transactions/", TransactionHistoryView.as_view(), name="transaction-history"),
 ]
