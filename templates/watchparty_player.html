@@ -39,7 +39,7 @@
 
             <!-- فریم اختصاصی ویدیو پلیر با کنترل‌های مدرن دو رنگ -->
             <div class="custom-player-wrapper" id="playerWrapper">
-                <video id="vinoraVideoPlayer" preload="auto" playsinline>
+                <video id="vinoraVideoPlayer" preload="metadata" playsinline>
                     <source src="/stream/{{ video.id }}/" type="video/mp4">
                     مرورگر شما از تگ ویدیو پشتیبانی نمی‌کند.
                 </video>
@@ -545,13 +545,20 @@
         const msgDiv = document.createElement('div');
         msgDiv.className = 'chat-bubble';
         const timeStr = timestamp ? new Date(timestamp).toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' }) : '';
-        msgDiv.innerHTML = `
-            <div class="chat-bubble-header">
-                <strong>${sender}</strong>
-                <small>${timeStr}</small>
-            </div>
-            <div class="chat-bubble-body">${text}</div>
-        `;
+        
+        const header = document.createElement('div');
+        header.className = 'chat-bubble-header';
+        const strong = document.createElement('strong');
+        strong.textContent = sender;
+        const small = document.createElement('small');
+        small.textContent = timeStr;
+        header.append(strong, small);
+        
+        const body = document.createElement('div');
+        body.className = 'chat-bubble-body';
+        body.textContent = text;
+        
+        msgDiv.append(header, body);
         messagesBox.appendChild(msgDiv);
         messagesBox.scrollTop = messagesBox.scrollHeight;
     }

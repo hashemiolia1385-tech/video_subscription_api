@@ -1,5 +1,15 @@
 import os
 import re
+import asyncio
+import mimetypes
+from pathlib import Path
+from django.conf import settings
+from django.http import (
+    Http404,
+    HttpResponse,
+    HttpResponseRedirect,
+    StreamingHttpResponse,
+)
 from django.shortcuts import render, get_object_or_404
 from rest_framework import viewsets, filters, status
 from rest_framework.generics import ListAPIView
@@ -214,42 +224,93 @@ def person_detail_view(request, pk):
     return render(request, "person_detail.html", context)
 
 
-def stream_video(request, pk):
-    video = get_object_or_404(Video, pk=pk)
-    path = video.video_url.lstrip("/")
-    if not os.path.exists(path):
-        return StreamingHttpResponse(status=404)
+CHUNK_SIZE = 512 * 1024
+MAX_RANGE_BYTES = 4 * 1024 * 1024
 
-    file_size = os.path.getsize(path)
-    range_header = request.META.get("HTTP_RANGE", "").strip()
-    range_match = re.match(r"bytes=(\d+)-(\d+)?", range_header)
 
-    if range_match:
-        first_byte = int(range_match.group(1))
-        last_byte = int(range_match.group(2)) if range_match.group(2) else file_size - 1
-        length = last_byte - first_byte + 1
+def _resolve_media_path(video_url):
+    """مسیر فایل را نسبت به MEDIA_ROOT حل می‌کند (با جلوگیری از path traversal)."""
+    url = (video_url or "").split("?")[0]
+    media_url = settings.MEDIA_URL
+    if url.startswith(media_url):
+        rel = url[len(media_url) :]
+    else:
+        rel = url.lstrip("/")
+        prefix = media_url.strip("/") + "/"
+        if rel.startswith(prefix):
+            rel = rel[len(prefix) :]
+    root = Path(settings.MEDIA_ROOT).resolve()
+    path = (root / rel).resolve()
+    if root not in path.parents:
+        return None
+    return path if path.is_file() else None
 
-        def file_iterator(file_path, offset, length, chunk_size=8192):
-            with open(file_path, "rb") as f:
-                f.seek(offset)
-                remaining = length
-                while remaining > 0:
-                    read_bytes = min(chunk_size, remaining)
-                    data = f.read(read_bytes)
-                    if not data:
-                        break
-                    remaining -= len(data)
-                    yield data
 
+async def _iter_file(path, start, length):
+    """iterator آسنکرون: خواندن فایل در thread تا event loop بلاک نشود."""
+    f = await asyncio.to_thread(open, path, "rb")
+    try:
+        await asyncio.to_thread(f.seek, start)
+        remaining = length
+        while remaining > 0:
+            chunk = await asyncio.to_thread(f.read, min(CHUNK_SIZE, remaining))
+            if not chunk:
+                break
+            remaining -= len(chunk)
+            yield chunk
+    finally:
+        await asyncio.to_thread(f.close)
+
+
+async def stream_video(request, pk):
+    try:
+        video = await Video.objects.aget(pk=pk)
+    except Video.DoesNotExist:
+        raise Http404
+
+    if video.video_url.startswith(("http://", "https://")):
+        return HttpResponseRedirect(video.video_url)
+
+    path = _resolve_media_path(video.video_url)
+    if path is None:
+        raise Http404
+
+    file_size = path.stat().st_size
+    content_type = mimetypes.guess_type(path.name)[0] or "video/mp4"
+    range_header = request.headers.get("Range", "").strip()
+
+    if not range_header:
         response = StreamingHttpResponse(
-            file_iterator(path, first_byte, length),
-            status=206,
-            content_type="video/mp4",
+            _iter_file(path, 0, file_size), status=200, content_type=content_type
         )
-        response["Content-Range"] = f"bytes {first_byte}-{last_byte}/{file_size}"
+        response["Content-Length"] = str(file_size)
         response["Accept-Ranges"] = "bytes"
-        response["Content-Length"] = str(length)
         return response
 
-    # در صورت عدم ارسال Range، فایل کامل به صورت بازه‌ای استریم می‌شود
-    return StreamingHttpResponse(open(path, "rb"), content_type="video/mp4")
+    m = re.match(r"^bytes=(\d*)-(\d*)$", range_header)
+    if not m or (m.group(1) == "" and m.group(2) == ""):
+        resp = HttpResponse(status=416)
+        resp["Content-Range"] = f"bytes */{file_size}"
+        return resp
+
+    if m.group(1) == "":
+        start = max(file_size - int(m.group(2)), 0)
+        end = file_size - 1
+    else:
+        start = int(m.group(1))
+        end = int(m.group(2)) if m.group(2) else file_size - 1
+
+    if start >= file_size or end < start:
+        resp = HttpResponse(status=416)
+        resp["Content-Range"] = f"bytes */{file_size}"
+        return resp
+
+    end = min(end, file_size - 1, start + MAX_RANGE_BYTES - 1)
+    length = end - start + 1
+
+    body = b"" if request.method == "HEAD" else _iter_file(path, start, length)
+    response = StreamingHttpResponse(body, status=206, content_type=content_type)
+    response["Content-Range"] = f"bytes {start}-{end}/{file_size}"
+    response["Content-Length"] = str(length)
+    response["Accept-Ranges"] = "bytes"
+    return response
