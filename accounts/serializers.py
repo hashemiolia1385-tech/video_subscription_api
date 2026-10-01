@@ -39,6 +39,7 @@ class FullRegisterSerializer(serializers.ModelSerializer):
             "last_name",
             "username",
             "identifier",
+            "gender",
             "password",
             "password_confirm",
         ]
@@ -75,10 +76,11 @@ class FullRegisterSerializer(serializers.ModelSerializer):
             username=validated_data["username"],
             email=email,
             phone_number=phone,
+            gender=validated_data.get("gender", User.Gender.MALE),  # <-- اضافه شود
             password=validated_data["password"],
             first_name=validated_data.get("first_name", ""),
             last_name=validated_data.get("last_name", ""),
-            is_active=False,  # کاربر بعد از تایید OTP فعال می‌شود
+            is_active=False,
         )
         return user
 
@@ -151,6 +153,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     wallet_balance = serializers.DecimalField(
         12, 2, source="wallet.balance", read_only=True
     )
+    avatar_url = serializers.CharField(source="default_avatar_url", read_only=True)
 
     class Meta:
         model = User
@@ -161,14 +164,17 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "phone_number",
             "first_name",
             "last_name",
+            "gender",
+            "avatar",
+            "avatar_url",
             "wallet_balance",
             "created_at",
             "updated_at",
         ]
         read_only_fields = [
             "id",
-            "username",
             "wallet_balance",
+            "avatar_url",
             "created_at",
             "updated_at",
         ]

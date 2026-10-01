@@ -1,0 +1,393 @@
+/* =========================================================
+   VINORA — CUSTOM CINEMATIC PLAYER STYLES
+   Colors: Teal (#15b4b2) & Coral (#fa9687)
+   ========================================================= */
+
+.vinora-player-page-wrapper {
+    min-height: calc(100vh - var(--header-h));
+    padding: 20px 16px 60px;
+    background: #03060a;
+}
+
+.player-main-container {
+    width: min(calc(100% - 16px), 1280px);
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* نوار بالای پلیر */
+.player-top-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.btn-back-movie {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--muted);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: var(--transition);
+}
+
+.btn-back-movie:hover {
+    color: var(--vinora-teal);
+    transform: translateX(4px);
+}
+
+.player-movie-tags {
+    display: flex;
+    gap: 8px;
+}
+
+.movie-header-tag {
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: var(--radius-pill);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    color: var(--muted);
+}
+
+.movie-header-tag.premium {
+    background: rgba(250, 150, 135, 0.15);
+    color: var(--vinora-coral);
+    border-color: rgba(250, 150, 135, 0.35);
+}
+
+.movie-header-tag.free {
+    background: rgba(34, 197, 94, 0.15);
+    color: var(--success);
+    border-color: rgba(34, 197, 94, 0.35);
+}
+
+/* کانتینر اصلی ویدیو */
+.custom-player-wrapper {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: #000;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85);
+    border: 1px solid var(--border-strong);
+    user-select: none;
+}
+
+.custom-player-wrapper video {
+    width: 100%;
+    height: 100%;
+    display: block;
+    cursor: pointer;
+}
+
+/* ایندیکیتور انیمیشنی وسط پلیر */
+.center-play-indicator {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.6);
+    width: 76px;
+    height: 76px;
+    border-radius: 50%;
+    background: rgba(7, 10, 18, 0.75);
+    border: 2px solid var(--vinora-teal);
+    color: var(--vinora-teal);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.2rem;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    z-index: 10;
+}
+
+.center-play-indicator.animate {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.1);
+}
+
+/* توئست گوشه پلیر */
+.player-toast {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(7, 10, 18, 0.85);
+    border: 1px solid var(--vinora-coral);
+    color: var(--vinora-coral);
+    padding: 6px 14px;
+    border-radius: var(--radius-pill);
+    font-size: 0.82rem;
+    font-weight: 700;
+    backdrop-filter: blur(8px);
+    opacity: 0;
+    transform: translateY(-6px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: none;
+    z-index: 12;
+}
+
+.player-toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* لایه کنترل‌های شناور پلیر */
+.player-controls-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 16px 20px;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.4) 70%, transparent 100%);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    z-index: 20;
+}
+
+.custom-player-wrapper:hover .player-controls-overlay,
+.custom-player-wrapper.show-controls .player-controls-overlay {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* نوار زمان پیشرفت گرادینتی */
+.progress-bar-container {
+    position: relative;
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: height 0.15s ease;
+}
+
+.progress-bar-container:hover {
+    height: 9px;
+}
+
+.progress-bar-buffered {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 0%;
+    background: rgba(255, 255, 255, 0.35);
+    border-radius: 4px;
+    pointer-events: none;
+}
+
+.progress-bar-played {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--vinora-teal), var(--vinora-coral));
+    border-radius: 4px;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.progress-scrubber-handle {
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 0 10px var(--glow-coral);
+    transform: scale(0);
+    transition: transform 0.15s ease;
+}
+
+.progress-bar-container:hover .progress-scrubber-handle {
+    transform: scale(1);
+}
+
+/* ردیف دکمه‌های اکشن */
+.controls-actions-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    direction: ltr; /* برای قرارگیری منطقی دکمه‌ها در ویدیو پلیر */
+}
+
+.controls-left-group,
+.controls-right-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* دکمه‌های کنترلی با ترکیب فیروزه‌ای و مرجانی وینورا */
+.ctrl-btn {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 1.15rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    position: relative;
+    padding: 6px;
+    border-radius: 6px;
+    transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.ctrl-btn:hover {
+    color: var(--vinora-teal);
+    transform: scale(1.1);
+}
+
+.ctrl-btn.main-play-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--vinora-teal), var(--vinora-coral));
+    color: #04201f;
+    font-size: 1.4rem;
+    box-shadow: 0 4px 14px var(--glow-teal);
+}
+
+.ctrl-btn.main-play-btn:hover {
+    transform: scale(1.12);
+    box-shadow: 0 6px 18px var(--glow-coral);
+}
+
+.btn-sub-num {
+    font-size: 0.65rem;
+    font-weight: 900;
+    position: absolute;
+    bottom: 2px;
+    color: var(--vinora-coral);
+}
+
+/* کنترل صدا */
+.volume-control-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.volume-slider {
+    width: 70px;
+    height: 4px;
+    accent-color: var(--vinora-teal);
+    cursor: pointer;
+}
+
+/* نمایشگر زمان */
+.time-display-box {
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    font-family: monospace;
+    font-weight: 700;
+}
+
+/* منوهای کشویی کیفیت و سرعت */
+.dropdown-control-menu {
+    position: relative;
+}
+
+.menu-trigger-btn {
+    font-size: 0.82rem;
+    font-weight: 800;
+    color: var(--text-dim);
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    padding: 4px 10px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+}
+
+.menu-trigger-btn:hover {
+    border-color: var(--vinora-teal);
+    color: #fff;
+}
+
+.control-dropdown-panel {
+    position: absolute;
+    bottom: 42px;
+    right: 0;
+    background: var(--surface-card);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+    padding: 6px 0;
+    min-width: 120px;
+    display: none;
+    flex-direction: column;
+    z-index: 50;
+}
+
+.control-dropdown-panel.open {
+    display: flex;
+}
+
+.control-dropdown-panel button {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    padding: 7px 14px;
+    font-size: 0.8rem;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.control-dropdown-panel button:hover,
+.control-dropdown-panel button.active {
+    background: rgba(21, 180, 178, 0.15);
+    color: var(--vinora-teal);
+    font-weight: 800;
+}
+
+/* توضیحات پایین ویدیو */
+.player-bottom-card {
+    background: var(--surface-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 1.4rem 1.8rem;
+}
+
+.player-bottom-card h1 {
+    font-size: 1.35rem;
+    font-weight: 900;
+    color: var(--text);
+    margin-bottom: 8px;
+}
+
+.player-bottom-card p {
+    font-size: 0.92rem;
+    line-height: 1.8;
+    color: var(--muted);
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    .volume-slider {
+        display: none;
+    }
+    .custom-player-wrapper {
+        border-radius: 0;
+    }
+    .player-main-container {
+        width: 100%;
+    }
+}

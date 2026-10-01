@@ -1,0 +1,215 @@
+/* =========================================================
+   VINORA — AUTH PAGES (LOGIN & REGISTER) (Fully Responsive)
+   ========================================================= */
+
+.auth-page-wrapper {
+    min-height: calc(88vh - var(--header-h));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(20px, 4vw, 40px) 16px;
+}
+
+.auth-card-modern {
+    background: var(--surface-card);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-lg);
+    width: 100%;
+    max-width: 460px;
+    padding: clamp(1.6rem, 4vw, 2.4rem) clamp(1.2rem, 3.5vw, 2rem);
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.45);
+    position: relative;
+}
+
+.auth-card-modern::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 20%;
+    right: 20%;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--vinora-teal), var(--vinora-coral), transparent);
+}
+
+.auth-brand-logo {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 1.4rem;
+}
+
+.auth-title {
+    font-size: clamp(1.25rem, 3vw, 1.45rem);
+    font-weight: 800;
+    color: var(--text);
+    text-align: center;
+    margin-bottom: 0.4rem;
+}
+
+.auth-subtitle {
+    font-size: clamp(0.82rem, 1.8vw, 0.88rem);
+    color: var(--muted);
+    text-align: center;
+    margin-bottom: 1.6rem;
+    line-height: 1.6;
+}
+
+.form-row {
+    display: flex;
+    gap: 12px;
+}
+
+.form-group-custom {
+    margin-bottom: 1.1rem;
+    flex: 1;
+}
+
+.field-label {
+    display: block;
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 0.4rem;
+}
+
+.vinora-input {
+    width: 100%;
+    background-color: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 0.75rem 0.95rem;
+    color: var(--text);
+    font-size: 0.92rem;
+    outline: none;
+    transition: var(--transition);
+}
+
+.vinora-input:focus {
+    border-color: var(--vinora-teal);
+    box-shadow: 0 0 0 3px var(--glow-teal);
+}
+
+.otp-code-field {
+    text-align: center;
+    font-size: clamp(1.4rem, 4vw, 1.8rem);
+    letter-spacing: clamp(6px, 2vw, 12px);
+    font-weight: 800;
+    font-family: monospace;
+}
+
+.notice-box {
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    margin-bottom: 1.2rem;
+    display: none;
+    line-height: 1.5;
+}
+
+.notice-box.error {
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid var(--danger);
+    color: #fca5a5;
+}
+
+.notice-box.success {
+    background: rgba(21, 180, 178, 0.15);
+    border: 1px solid var(--vinora-teal);
+    color: #5eead4;
+}
+
+.btn-link-action {
+    background: none;
+    border: none;
+    color: var(--vinora-teal);
+    cursor: pointer;
+    padding: 0;
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+.btn-link-action:hover {
+    color: var(--vinora-teal-light);
+}
+
+.divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 1.3rem 0;
+    color: var(--muted);
+    font-size: 0.8rem;
+}
+
+.divider::before,
+.divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid var(--border);
+}
+
+.divider:not(:empty)::before {
+    margin-left: .6em;
+}
+
+.divider:not(:empty)::after {
+    margin-right: .6em;
+}
+
+.timer-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin-top: 1.1rem;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.auth-footer-text {
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-top: 1.4rem;
+    border-top: 1px solid var(--border);
+    padding-top: 1rem;
+}
+
+.auth-footer-text a {
+    color: var(--vinora-teal);
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.auth-logo-img {
+    height: 36px;
+}
+
+.auth-logo-wordmark {
+    font-size: 1.35rem;
+    font-weight: 900;
+}
+
+.btn-auth-submit,
+.btn-otp-action {
+    padding: 0.8rem;
+}
+
+.btn-otp-back {
+    padding: 0.7rem;
+    margin-top: 0.5rem;
+}
+
+.countdown-highlight {
+    color: var(--text);
+}
+
+@media (max-width: 540px) {
+    .form-row {
+        flex-direction: column;
+        gap: 0;
+    }
+}

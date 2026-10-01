@@ -27,7 +27,23 @@ SECRET_KEY = "django-insecure-8#n(k9y!jhr3@@g%-_8z0kox)y^#%@gs^10=nwm2)1u1r!wsd6
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["127.0.0.1", "localhost", "testserver"]
+ALLOWED_HOSTS = [
+    "127.0.0.1",
+    "localhost",
+    "testserver",
+    ".ngrok-free.app",
+    ".ngrok-free.dev",
+    ".ngrok.app",
+    ".ngrok.io",
+]
+
+# برای ورود به /admin/ از طریق https (بدون این، خطای CSRF می‌گیری)
+CSRF_TRUSTED_ORIGINS = [
+    "https://*.ngrok-free.app",
+    "https://*.ngrok-free.dev",
+    "https://*.ngrok.app",
+    "https://*.ngrok.io",
+]
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"

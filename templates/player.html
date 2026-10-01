@@ -1,0 +1,326 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}پخش فیلم: {{ video.title }} | وینورا{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/player.css' %}?v=1.0">
+{% endblock %}
+
+{% block content %}
+<div class="vinora-player-page-wrapper">
+    <div class="player-main-container">
+        
+        <!-- نوار بالایی اطلاعات فیلم و بازگشت -->
+        <div class="player-top-header">
+            <a href="{% url 'movie-detail' video.id %}" class="btn-back-movie">
+                <i class="bi bi-chevron-right"></i> بازگشت به جزئیات فیلم
+            </a>
+            <div class="player-movie-tags">
+                <span class="movie-header-tag"><i class="bi bi-film"></i> {{ video.genre|default:"سینمایی" }}</span>
+                {% if video.required_plan %}
+                    <span class="movie-header-tag premium"><i class="bi bi-gem"></i> اشتراکی</span>
+                {% else %}
+                    <span class="movie-header-tag free"><i class="bi bi-unlock-fill"></i> رایگان</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- قاب اختصاصی پلیر سفارشی وینورا -->
+        <div class="custom-player-wrapper" id="playerWrapper">
+            <video id="mainVideoPlayer" preload="metadata" playsinline>
+                <source src="/stream/{{ video.id }}/" type="video/mp4">
+                مرورگر شما از تگ ویدیو پشتیبانی نمی‌کند.
+            </video>
+
+            <!-- ایندیکیتور انیمیشنی وسط تصویر هنگام کلیک -->
+            <div class="center-play-indicator" id="centerPlayIndicator">
+                <i class="bi bi-play-fill"></i>
+            </div>
+
+            <!-- نوار اعلان سریع در گوشه پلیر -->
+            <div id="playerToastIndicator" class="player-toast">
+                <span id="playerToastText"></span>
+            </div>
+
+            <!-- نوار کنترل اختصاصی شناور پایین ویدیو -->
+            <div class="player-controls-overlay" id="playerControls">
+                
+                <!-- نوار پیشرفت زمان فیلم (Timeline Progress Bar) -->
+                <div class="progress-bar-container" id="progressBarContainer">
+                    <div class="progress-bar-buffered" id="progressBuffered"></div>
+                    <div class="progress-bar-played" id="progressPlayed">
+                        <span class="progress-scrubber-handle"></span>
+                    </div>
+                </div>
+
+                <!-- ردیف دکمه‌های کنترل -->
+                <div class="controls-actions-row">
+                    
+                    <div class="controls-left-group">
+                        <!-- دکمه پلی / پاز -->
+                        <button type="button" class="ctrl-btn main-play-btn" id="playPauseBtn" title="پخش / توقف (Space)">
+                            <i class="bi bi-play-fill" id="playPauseIcon"></i>
+                        </button>
+
+                        <!-- ۱۰ ثانیه به عقب -->
+                        <button type="button" class="ctrl-btn" onclick="seekRelative(-10)" title="۱۰ ثانیه به عقب">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                            <span class="btn-sub-num">10</span>
+                        </button>
+
+                        <!-- ۱۰ ثانیه به جلو -->
+                        <button type="button" class="ctrl-btn" onclick="seekRelative(10)" title="۱۰ ثانیه به جلو">
+                            <i class="bi bi-arrow-clockwise"></i>
+                            <span class="btn-sub-num">10</span>
+                        </button>
+
+                        <!-- کنترل صدا -->
+                        <div class="volume-control-wrap">
+                            <button type="button" class="ctrl-btn" id="muteBtn" title="صدا">
+                                <i class="bi bi-volume-up-fill" id="muteIcon"></i>
+                            </button>
+                            <input type="range" id="volumeSlider" class="volume-slider" min="0" max="1" step="0.05" value="1">
+                        </div>
+
+                        <!-- زمان فعلی / کل زمان -->
+                        <div class="time-display-box">
+                            <span id="currentTimeLabel">00:00</span> / <span id="totalDurationLabel">00:00</span>
+                        </div>
+                    </div>
+
+                    <div class="controls-right-group">
+                        
+                        <!-- منوی سرعت پخش -->
+                        <div class="dropdown-control-menu" id="speedMenuWrapper">
+                            <button type="button" class="ctrl-btn menu-trigger-btn" onclick="toggleControlMenu('speedMenu')">
+                                <i class="bi bi-speedometer2"></i> <span id="speedValueLabel">1x</span>
+                            </button>
+                            <div class="control-dropdown-panel" id="speedMenu">
+                                <button type="button" onclick="setPlaybackSpeed(0.5, this)">0.5x</button>
+                                <button type="button" onclick="setPlaybackSpeed(0.75, this)">0.75x</button>
+                                <button type="button" class="active" onclick="setPlaybackSpeed(1, this)">1x (عادی)</button>
+                                <button type="button" onclick="setPlaybackSpeed(1.25, this)">1.25x</button>
+                                <button type="button" onclick="setPlaybackSpeed(1.5, this)">1.5x</button>
+                                <button type="button" onclick="setPlaybackSpeed(2, this)">2x</button>
+                            </div>
+                        </div>
+
+                        <!-- منوی انتخاب کیفیت -->
+                        <div class="dropdown-control-menu" id="qualityMenuWrapper">
+                            <button type="button" class="ctrl-btn menu-trigger-btn" onclick="toggleControlMenu('qualityMenu')">
+                                <i class="bi bi-gear-fill"></i> <span id="qualityValueLabel">1080p</span>
+                            </button>
+                            <div class="control-dropdown-panel" id="qualityMenu">
+                                <button type="button" onclick="setVideoQuality('4K', this)">4K Ultra HD</button>
+                                <button type="button" class="active" onclick="setVideoQuality('1080p', this)">1080p Full HD</button>
+                                <button type="button" onclick="setVideoQuality('720p', this)">720p HD</button>
+                                <button type="button" onclick="setVideoQuality('480p', this)">480p SD</button>
+                                <button type="button" onclick="setVideoQuality('خودکار', this)">Auto (خودکار)</button>
+                            </div>
+                        </div>
+
+                        <!-- دکمه تمام‌صفحه -->
+                        <button type="button" class="ctrl-btn" id="fullscreenBtn" title="تمام صفحه (F)">
+                            <i class="bi bi-fullscreen" id="fullscreenIcon"></i>
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- کارت توضیحات پایین پلیر -->
+        <div class="player-bottom-card">
+            <h1>{{ video.title }}</h1>
+            <p>{{ video.description }}</p>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    const video = document.getElementById('mainVideoPlayer');
+    const playerWrapper = document.getElementById('playerWrapper');
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    const playPauseIcon = document.getElementById('playPauseIcon');
+    const centerIndicator = document.getElementById('centerPlayIndicator');
+    const progressContainer = document.getElementById('progressBarContainer');
+    const progressPlayed = document.getElementById('progressPlayed');
+    const progressBuffered = document.getElementById('progressBuffered');
+    const currentTimeLabel = document.getElementById('currentTimeLabel');
+    const totalDurationLabel = document.getElementById('totalDurationLabel');
+    const muteBtn = document.getElementById('muteBtn');
+    const muteIcon = document.getElementById('muteIcon');
+    const volumeSlider = document.getElementById('volumeSlider');
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    const fullscreenIcon = document.getElementById('fullscreenIcon');
+    const toastIndicator = document.getElementById('playerToastIndicator');
+    const toastText = document.getElementById('playerToastText');
+
+    let controlsTimeout;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // بازگشت به زمان ذخیره‌شده یا ابتدای فیلم
+        video.addEventListener('loadedmetadata', () => {
+            totalDurationLabel.innerText = formatTime(video.duration);
+        });
+
+        setupPlayerEventListeners();
+    });
+
+    function formatTime(sec) {
+        if (isNaN(sec)) return "00:00";
+        const m = Math.floor(sec / 60);
+        const s = Math.floor(sec % 60);
+        return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    }
+
+    function showToast(msg) {
+        toastText.innerText = msg;
+        toastIndicator.classList.add('show');
+        clearTimeout(window._toastTimeout);
+        window._toastTimeout = setTimeout(() => {
+            toastIndicator.classList.remove('show');
+        }, 1600);
+    }
+
+    function togglePlay() {
+        if (video.paused || video.ended) {
+            video.play();
+            playPauseIcon.className = "bi bi-pause-fill";
+            showCenterIndicator('bi-play-fill');
+        } else {
+            video.pause();
+            playPauseIcon.className = "bi bi-play-fill";
+            showCenterIndicator('bi-pause-fill');
+        }
+    }
+
+    function showCenterIndicator(iconClass) {
+        centerIndicator.innerHTML = `<i class="bi ${iconClass}"></i>`;
+        centerIndicator.classList.add('animate');
+        setTimeout(() => centerIndicator.classList.remove('animate'), 500);
+    }
+
+    function seekRelative(seconds) {
+        video.currentTime = Math.max(0, Math.min(video.duration, video.currentTime + seconds));
+        showToast(seconds > 0 ? `+${seconds} ثانیه` : `${seconds} ثانیه`);
+    }
+
+    function setupPlayerEventListeners() {
+        playPauseBtn.addEventListener('click', togglePlay);
+        video.addEventListener('click', togglePlay);
+
+        // آپدیت نوار زمان
+        video.addEventListener('timeupdate', () => {
+            const percent = (video.currentTime / video.duration) * 100;
+            progressPlayed.style.width = `${percent}%`;
+            currentTimeLabel.innerText = formatTime(video.currentTime);
+
+            // محاسبه بافر
+            if (video.buffered.length > 0) {
+                const buff = (video.buffered.end(video.buffered.length - 1) / video.duration) * 100;
+                progressBuffered.style.width = `${buff}%`;
+            }
+        });
+
+        // کلیک روی نوار زمان (Seek)
+        progressContainer.addEventListener('click', (e) => {
+            const rect = progressContainer.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const percent = clickX / rect.width;
+            video.currentTime = percent * video.duration;
+        });
+
+        // صدا
+        volumeSlider.addEventListener('input', (e) => {
+            video.volume = e.target.value;
+            video.muted = (e.target.value === "0");
+            updateVolumeIcon();
+        });
+
+        muteBtn.addEventListener('click', () => {
+            video.muted = !video.muted;
+            updateVolumeIcon();
+        });
+
+        // فول‌اسکرین
+        fullscreenBtn.addEventListener('click', toggleFullscreen);
+
+        // پنهان کردن خودکار کنترل‌ها پس از ۳ ثانیه بی‌حرکتی ماوس
+        playerWrapper.addEventListener('mousemove', showControlsBriefly);
+        playerWrapper.addEventListener('mouseleave', () => playerWrapper.classList.remove('show-controls'));
+
+        // میانبرهای کیبورد
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
+            else if (e.code === 'ArrowRight') { e.preventDefault(); seekRelative(10); }
+            else if (e.code === 'ArrowLeft') { e.preventDefault(); seekRelative(-10); }
+            else if (e.code === 'KeyF') { e.preventDefault(); toggleFullscreen(); }
+            else if (e.code === 'KeyM') { e.preventDefault(); video.muted = !video.muted; updateVolumeIcon(); }
+        });
+    }
+
+    function updateVolumeIcon() {
+        if (video.muted || video.volume === 0) {
+            muteIcon.className = "bi bi-volume-mute-fill";
+        } else if (video.volume < 0.5) {
+            muteIcon.className = "bi bi-volume-down-fill";
+        } else {
+            muteIcon.className = "bi bi-volume-up-fill";
+        }
+    }
+
+    function toggleFullscreen() {
+        if (!document.fullscreenElement) {
+            playerWrapper.requestFullscreen().catch(() => {});
+            fullscreenIcon.className = "bi bi-fullscreen-exit";
+        } else {
+            document.exitFullscreen().catch(() => {});
+            fullscreenIcon.className = "bi bi-fullscreen";
+        }
+    }
+
+    function showControlsBriefly() {
+        playerWrapper.classList.add('show-controls');
+        clearTimeout(controlsTimeout);
+        controlsTimeout = setTimeout(() => {
+            if (!video.paused) playerWrapper.classList.remove('show-controls');
+        }, 3000);
+    }
+
+    function toggleControlMenu(menuId) {
+        const menu = document.getElementById(menuId);
+        const isOpen = menu.classList.contains('open');
+        document.querySelectorAll('.control-dropdown-panel').forEach(m => m.classList.remove('open'));
+        if (!isOpen) menu.classList.add('open');
+    }
+
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.dropdown-control-menu')) {
+            document.querySelectorAll('.control-dropdown-panel').forEach(m => m.classList.remove('open'));
+        }
+    });
+
+    function setPlaybackSpeed(speed, btn) {
+        video.playbackRate = speed;
+        document.getElementById('speedValueLabel').innerText = `${speed}x`;
+        btn.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        btn.parentElement.classList.remove('open');
+        showToast(`سرعت پخش: ${speed}x`);
+    }
+
+    function setVideoQuality(label, btn) {
+        document.getElementById('qualityValueLabel').innerText = label;
+        btn.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        btn.parentElement.classList.remove('open');
+        showToast(`کیفیت تنظیم شد: ${label}`);
+    }
+</script>
+{% endblock %}

@@ -65,10 +65,10 @@ class PurchaseSubscriptionView(APIView):
             )
 
             if active_sub:
-                start_date = active_sub.start_date
-                end_date = active_sub.end_date + timedelta(days=plan.duration_days)
+                active_sub.end_date = active_sub.end_date + timedelta(
+                    days=plan.duration_days
+                )
                 active_sub.plan = plan
-                active_sub.end_date = end_date
                 active_sub.auto_renew = auto_renew
                 active_sub.save()
                 sub = active_sub

@@ -1,0 +1,310 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}کیف پول و تراکنش‌ها | وینورا{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/wallet.css' %}?v=1.0">
+{% endblock %}
+
+{% block content %}
+<div class="wallet-page-wrapper">
+    <div class="wallet-container">
+
+        <!-- کارت بالایی: موجودی و اکشن شارژ -->
+        <div class="wallet-balance-card">
+            <div class="wallet-balance-info">
+                <span class="wallet-label"><i class="bi bi-wallet2"></i> موجودی فعلی حساب شما</span>
+                <div class="wallet-amount-row">
+                    <span id="walletBalance" class="wallet-amount">۰</span>
+                    <span class="wallet-currency">تومان</span>
+                </div>
+                <p class="wallet-desc">از موجودی کیف پول خود می‌توانید برای خرید و تمدید خودکار اشتراک‌های وینورا استفاده کنید.</p>
+            </div>
+            <div class="wallet-balance-actions">
+                <button type="button" class="btn btn-brand-gradient" onclick="openDepositModal()">
+                    <i class="bi bi-plus-circle-fill"></i> شارژ کیف پول
+                </button>
+            </div>
+        </div>
+
+        <!-- بخش پایینی: جدول و تاریخچه تراکنش‌ها -->
+        <div class="wallet-transactions-section">
+            <div class="transactions-header">
+                <h2><i class="bi bi-clock-history"></i> تاریخچه تراکنش‌ها</h2>
+                <span id="txCountBadge" class="tx-badge-count">در حال بررسی...</span>
+            </div>
+
+            <div id="txAlert" class="notice-box"></div>
+
+            <div class="table-responsive">
+                <table class="wallet-table">
+                    <thead>
+                        <tr>
+                            <th>نوع تراکنش</th>
+                            <th>مبلغ</th>
+                            <th>توضیحات</th>
+                            <th>وضعیت</th>
+                            <th>تاریخ و زمان</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactionsBody">
+                        <tr>
+                            <td colspan="5" class="table-state-msg">
+                                <i class="bi bi-hourglass-split"></i> در حال بارگذاری تراکنش‌ها...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ============================== مودال شارژ کیف پول ============================== -->
+<div id="depositModal" class="vinora-modal-overlay">
+    <div class="vinora-modal-card">
+        <div class="modal-header">
+            <h3><i class="bi bi-credit-card-2-front"></i> افزایش موجودی کیف پول</h3>
+            <button type="button" class="modal-close-btn" onclick="closeDepositModal()" aria-label="بستن">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+
+        <div id="modalNotice" class="notice-box"></div>
+
+        <form onsubmit="handleDepositSubmit(event)">
+            <div class="form-group-custom">
+                <label class="field-label" for="depositAmount">مبلغ مورد نظر برای شارژ</label>
+                <div class="search-style-input-bar">
+                    <div class="input-with-icon-wrap">
+                        <input type="number" id="depositAmount" class="search-styled-amount-input text-ltr" min="1000" step="1000" required>
+                    </div>
+                    <div class="currency-addon-wrap">
+                        <span class="currency-tag">تومان</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- مبالغ پیشنهادی سریع -->
+            <div class="quick-amounts-grid">
+                <button type="button" class="btn-quick-amount" onclick="setQuickAmount(50000)">۵۰,۰۰۰ تومان</button>
+                <button type="button" class="btn-quick-amount" onclick="setQuickAmount(100000)">۱۰۰,۰۰۰ تومان</button>
+                <button type="button" class="btn-quick-amount" onclick="setQuickAmount(200000)">۲۰۰,۰۰۰ تومان</button>
+            </div>
+
+            <div class="modal-footer-actions">
+                <button type="submit" id="btnDepositSubmit" class="btn btn-brand-gradient btn-block">
+                    <i class="bi bi-check2-circle"></i> پرداخت و افزایش موجودی
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const token = localStorage.getItem(AUTH_ACCESS_KEY);
+        if (!token) {
+            window.location.href = '/login/';
+            return;
+        }
+        loadWalletData();
+        loadTransactionHistory();
+    });
+
+    async function loadWalletData() {
+        const token = localStorage.getItem(AUTH_ACCESS_KEY);
+        try {
+            const res = await fetch('/api/payments/wallet/', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                document.getElementById('walletBalance').innerText = Number(data.balance).toLocaleString('fa-IR');
+            }
+        } catch (e) {
+            console.error('خطا در دریافت موجودی والت:', e);
+        }
+    }
+
+    async function loadTransactionHistory() {
+        const token = localStorage.getItem(AUTH_ACCESS_KEY);
+        const tbody = document.getElementById('transactionsBody');
+        const badge = document.getElementById('txCountBadge');
+
+        try {
+            const res = await fetch('/api/payments/transactions/', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!res.ok) throw new Error();
+
+            const raw = await res.json();
+            const transactions = Array.isArray(raw) ? raw : (raw.results || []);
+
+            if (!transactions || transactions.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="table-state-msg">
+                            <i class="bi bi-inbox"></i> هنوز هیچ تراکنشی در کیف پول شما ثبت نشده است.
+                        </td>
+                    </tr>
+                `;
+                badge.innerText = '۰ تراکنش';
+                return;
+            }
+
+            badge.innerText = `${transactions.length.toLocaleString('fa-IR')} تراکنش`;
+            tbody.innerHTML = '';
+
+            transactions.forEach(tx => {
+                const tr = document.createElement('tr');
+
+                // نوع تراکنش: واریز (شارژ) یا برداشت (پرداخت اشتراک)
+                const isDeposit = tx.type === 'deposit';
+                const typeIcon = isDeposit ? 'bi-arrow-down-left' : 'bi-arrow-up-right';
+                const typeLabel = isDeposit ? 'شارژ کیف پول' : 'خرید اشتراک / پرداخت';
+                const typeClass = isDeposit ? 'type-deposit' : 'type-payment';
+
+                // علامت مثبت و منفی برای مبلغ
+                const sign = isDeposit ? '+' : '-';
+                const amountFormatted = `${sign} ${Number(tx.amount).toLocaleString('fa-IR')}`;
+
+                // وضعیت
+                let statusLabel = 'نامشخص';
+                let statusClass = 'status-pending';
+                if (tx.status === 'success') {
+                    statusLabel = 'موفق';
+                    statusClass = 'status-success';
+                } else if (tx.status === 'failed') {
+                    statusLabel = 'ناموفق';
+                    statusClass = 'status-failed';
+                } else if (tx.status === 'pending') {
+                    statusLabel = 'در انتظار';
+                    statusClass = 'status-pending';
+                }
+
+                const createdDate = new Date(tx.created_at).toLocaleString('fa-IR', {
+                    dateStyle: 'medium',
+                    timeStyle: 'short'
+                });
+
+                tr.innerHTML = `
+                    <td>
+                        <span class="tx-type-pill ${typeClass}">
+                            <i class="bi ${typeIcon}"></i> ${typeLabel}
+                        </span>
+                    </td>
+                    <td><strong class="tx-amount ${typeClass}">${amountFormatted} تومان</strong></td>
+                    <td class="tx-desc">${tx.description || '—'}</td>
+                    <td><span class="tx-status-pill ${statusClass}">${statusLabel}</span></td>
+                    <td class="tx-date">${createdDate}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+        } catch (e) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="table-state-msg error-msg">
+                        <i class="bi bi-exclamation-triangle"></i> خطا در واکشی تاریخچه تراکنش‌ها.
+                    </td>
+                </tr>
+            `;
+            badge.innerText = 'خطا';
+        }
+    }
+
+    function openDepositModal() {
+        document.getElementById('depositModal').classList.add('active');
+        document.getElementById('depositAmount').value = '';
+        hideModalNotice();
+    }
+
+    function closeDepositModal() {
+        document.getElementById('depositModal').classList.remove('active');
+    }
+
+    function setQuickAmount(amount) {
+        document.getElementById('depositAmount').value = amount;
+    }
+
+    function showModalNotice(msg, isError = true) {
+        const el = document.getElementById('modalNotice');
+        el.className = `notice-box ${isError ? 'error' : 'success'}`;
+        el.innerText = msg;
+        el.style.display = 'block';
+    }
+
+    function hideModalNotice() {
+        document.getElementById('modalNotice').style.display = 'none';
+    }
+
+    async function handleDepositSubmit(e) {
+        e.preventDefault();
+        hideModalNotice();
+
+        const token = localStorage.getItem(AUTH_ACCESS_KEY);
+        const amount = document.getElementById('depositAmount').value.trim();
+        const btn = document.getElementById('btnDepositSubmit');
+
+        if (!amount || Number(amount) < 1000) {
+            showModalNotice('حداقل مبلغ شارژ ۱,۰۰۰ تومان می‌باشد.');
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bi bi-hourglass-split"></i> در حال پردازش تراکنش...';
+
+        try {
+            // ۱. ثبت درخواست تراکنش (Deposit Request)
+            const reqRes = await fetch('/api/payments/deposit/request/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ amount: amount })
+            });
+            const reqData = await reqRes.json();
+
+            if (!reqRes.ok || !reqData.transaction_id) {
+                showModalNotice(reqData.detail || 'خطا در ثبت درخواست شارژ.');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-check2-circle"></i> پرداخت و افزایش موجودی';
+                return;
+            }
+
+            // ۲. شبیه‌سازی تایید مستقیم درگاه (Deposit Verify)
+            const verifyRes = await fetch('/api/payments/deposit/verify/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    transaction_id: reqData.transaction_id,
+                    success: true
+                })
+            });
+            const verifyData = await verifyRes.json();
+
+            if (verifyRes.ok) {
+                closeDepositModal();
+                loadWalletData();
+                loadTransactionHistory();
+            } else {
+                showModalNotice(verifyData.detail || 'تایید تراکنش با مشکل مواجه شد.');
+            }
+        } catch (err) {
+            showModalNotice('خطای شبکه در ارتباط با سرور.');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-check2-circle"></i> پرداخت و افزایش موجودی';
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,302 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}ثبت‌نام در وینورا | VINORA{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/auth.css' %}?v=1.1">
+{% endblock %}
+
+{% block content %}
+<div class="auth-page-wrapper">
+    <div class="auth-card-modern">
+        
+        <div class="auth-brand-logo">
+            <img src="{% static 'img/logo.svg' %}" alt="VINORA" class="auth-logo-img">
+            <span class="brand-wordmark auth-logo-wordmark">VINORA</span>
+        </div>
+
+        <!-- گام اول: فرم ثبت‌نام -->
+        <div id="registerFormStep">
+            <h1 class="auth-title">ایجاد حساب کاربری</h1>
+            <p class="auth-subtitle">به خانواده کاربران فیلم و سریال وینورا بپیوندید.</p>
+
+            <div id="registerNotice" class="notice-box"></div>
+
+            <form onsubmit="handleRegisterSubmit(event)">
+                <div class="form-row">
+                    <div class="form-group-custom">
+                        <label class="field-label" for="regFirstName">نام</label>
+                        <input type="text" id="regFirstName" class="vinora-input" placeholder="مثلاً: علی" required>
+                    </div>
+                    <div class="form-group-custom">
+                        <label class="field-label" for="regLastName">نام خانوادگی</label>
+                        <input type="text" id="regLastName" class="vinora-input" placeholder="مثلاً: رضایی" required>
+                    </div>
+                </div>
+
+                <div class="form-group-custom">
+                    <label class="field-label" for="regUsername">نام کاربری (لاتین)</label>
+                    <input type="text" id="regUsername" class="vinora-input" placeholder="ali_rezaei" required dir="ltr">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group-custom">
+                        <label class="field-label" for="regIdentifier">شماره موبایل یا ایمیل</label>
+                        <input type="text" id="regIdentifier" class="vinora-input" placeholder="09121234567 یا user@example.com" required dir="ltr">
+                    </div>
+                    <div class="form-group-custom">
+                        <label class="field-label" for="regGender">جنسیت</label>
+                        <select id="regGender" class="vinora-input vinora-select" required>
+                            <option value="male" selected>مرد</option>
+                            <option value="female">زن</option>
+                            <option value="other">سایر</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group-custom">
+                        <label class="field-label" for="regPassword">رمز عبور</label>
+                        <input type="password" id="regPassword" class="vinora-input" placeholder="••••••••" required dir="ltr">
+                    </div>
+                    <div class="form-group-custom">
+                        <label class="field-label" for="regPasswordConfirm">تکرار رمز عبور</label>
+                        <input type="password" id="regPasswordConfirm" class="vinora-input" placeholder="••••••••" required dir="ltr">
+                    </div>
+                </div>
+
+                <button type="submit" id="btnRegister" class="btn btn-primary btn-block btn-auth-submit">
+                    ثبت‌نام و دریافت کد تایید
+                </button>
+            </form>
+
+            <div class="auth-footer-text">
+                قبلاً ثبت‌نام کرده‌اید؟ <a href="/login/">وارد شوید</a>
+            </div>
+        </div>
+
+        <!-- گام دوم: تایید کد OTP -->
+        <div id="otpVerifyStep" style="display: none;">
+            <h1 class="auth-title">تایید هویت</h1>
+            <p id="otpMsgTarget" class="auth-subtitle"></p>
+
+            <div id="verifyNotice" class="notice-box"></div>
+
+            <form onsubmit="handleVerifySubmit(event)">
+                <div class="form-group-custom">
+                    <input type="text" id="otpInput" class="vinora-input otp-code-field" maxlength="6" placeholder="------" required dir="ltr" autocomplete="one-time-code">
+                </div>
+
+                <button type="submit" id="btnVerify" class="btn btn-primary btn-block btn-otp-action">
+                    تکمیل ثبت‌نام و ورود
+                </button>
+
+                <button type="button" id="btnEditIdentifier" class="btn btn-outline btn-block btn-otp-back" onclick="backToRegisterForm()">
+                    اصلاح اطلاعات
+                </button>
+
+                <div class="timer-row">
+                    <span id="timerBox">ارسال مجدد کد تا: <strong id="countdownText" class="countdown-highlight">02:00</strong></span>
+                    <button type="button" id="btnResendOtp" class="btn-link-action" style="display: none;" onclick="resendOtpCode()">
+                        ارسال مجدد کد
+                    </button>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    let timerInterval = null;
+    let targetIdentifier = '';
+    let isEmailChannel = false;
+
+    function showNotice(elId, msg, isSuccess = false) {
+        const el = document.getElementById(elId);
+        el.className = `notice-box ${isSuccess ? 'success' : 'error'}`;
+        el.innerText = msg;
+        el.style.display = 'block';
+    }
+
+    function hideNotice(elId) {
+        document.getElementById(elId).style.display = 'none';
+    }
+
+    async function handleRegisterSubmit(e) {
+        e.preventDefault();
+        hideNotice('registerNotice');
+
+        const firstName = document.getElementById('regFirstName').value.trim();
+        const lastName = document.getElementById('regLastName').value.trim();
+        const username = document.getElementById('regUsername').value.trim();
+        const identifier = document.getElementById('regIdentifier').value.trim();
+        const gender = document.getElementById('regGender').value;
+        const password = document.getElementById('regPassword').value;
+        const passwordConfirm = document.getElementById('regPasswordConfirm').value;
+        const btn = document.getElementById('btnRegister');
+
+        if (password !== passwordConfirm) {
+            showNotice('registerNotice', 'رمز عبور و تکرار آن یکسان نیستند.');
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerText = 'در حال ارسال اطلاعات...';
+
+        try {
+            const res = await fetch('/api/accounts/register/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    first_name: firstName,
+                    last_name: lastName,
+                    username: username,
+                    identifier: identifier,
+                    gender: gender,
+                    password: password,
+                    password_confirm: passwordConfirm
+                })
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                targetIdentifier = data.identifier;
+                isEmailChannel = data.channel === 'email';
+
+                const msgTarget = document.getElementById('otpMsgTarget');
+                const btnEdit = document.getElementById('btnEditIdentifier');
+
+                if (isEmailChannel) {
+                    msgTarget.innerHTML = `کد تایید به ایمیل <strong>${targetIdentifier}</strong> ارسال شد.`;
+                    btnEdit.innerText = 'اصلاح ایمیل';
+                } else {
+                    msgTarget.innerHTML = `کد تایید به شماره تلفن <strong>${targetIdentifier}</strong> ارسال شد.`;
+                    btnEdit.innerText = 'اصلاح شماره تلفن';
+                }
+
+                document.getElementById('registerFormStep').style.display = 'none';
+                document.getElementById('otpVerifyStep').style.display = 'block';
+                document.getElementById('otpInput').value = '';
+                document.getElementById('otpInput').focus();
+
+                showNotice('verifyNotice', 'کد تایید ارسال شد (لاگ سرور ترمینال را ببینید).', true);
+                startOtpTimer(120);
+            } else {
+                let errText = 'خطا در ثبت‌نام: ';
+                if (data.identifier) errText += data.identifier[0];
+                else if (data.username) errText += data.username[0];
+                else if (data.gender) errText += data.gender[0];
+                else if (data.password) errText += data.password[0];
+                else if (data.detail) errText += data.detail;
+                else errText += JSON.stringify(data);
+                showNotice('registerNotice', errText);
+            }
+        } catch (err) {
+            showNotice('registerNotice', 'خطای شبکه یا عدم برقراری ارتباط با سرور.');
+        } finally {
+            btn.disabled = false;
+            btn.innerText = 'ثبت‌نام و دریافت کد تایید';
+        }
+    }
+
+    async function handleVerifySubmit(e) {
+        e.preventDefault();
+        hideNotice('verifyNotice');
+
+        const code = document.getElementById('otpInput').value.trim();
+        const btn = document.getElementById('btnVerify');
+
+        if (code.length !== 6) {
+            showNotice('verifyNotice', 'کد تایید باید ۶ رقم باشد.');
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerText = 'در حال اعتبارسنجی...';
+
+        try {
+            const res = await fetch('/api/accounts/otp/verify/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    identifier: targetIdentifier,
+                    code: code
+                })
+            });
+
+            const data = await res.json();
+
+            if (res.ok && data.access) {
+                localStorage.setItem(AUTH_ACCESS_KEY, data.access);
+                localStorage.setItem(AUTH_REFRESH_KEY, data.refresh);
+
+                showNotice('verifyNotice', 'ثبت‌نام با موفقیت تایید شد! در حال انتقال...', true);
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 800);
+            } else {
+                showNotice('verifyNotice', data.detail || 'کد وارد شده نامعتبر یا منقضی است.');
+            }
+        } catch (err) {
+            showNotice('verifyNotice', 'خطا در ارتباط با سرور.');
+        } finally {
+            btn.disabled = false;
+            btn.innerText = 'تکمیل ثبت‌نام و ورود';
+        }
+    }
+
+    async function resendOtpCode() {
+        try {
+            const res = await fetch('/api/accounts/quick-otp/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ identifier: targetIdentifier })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                showNotice('verifyNotice', 'کد جدید ارسال شد.', true);
+                startOtpTimer(120);
+            } else {
+                showNotice('verifyNotice', data.detail || 'خطا در ارسال مجدد.');
+            }
+        } catch(err) {
+            showNotice('verifyNotice', 'خطای شبکه در ارسال مجدد.');
+        }
+    }
+
+    function startOtpTimer(duration) {
+        clearInterval(timerInterval);
+        let remain = duration;
+        const textEl = document.getElementById('countdownText');
+        const boxEl = document.getElementById('timerBox');
+        const resendBtn = document.getElementById('btnResendOtp');
+
+        boxEl.style.display = 'inline';
+        resendBtn.style.display = 'none';
+
+        timerInterval = setInterval(() => {
+            const m = Math.floor(remain / 60);
+            const s = remain % 60;
+            textEl.innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+
+            if (remain <= 0) {
+                clearInterval(timerInterval);
+                boxEl.style.display = 'none';
+                resendBtn.style.display = 'inline';
+            }
+            remain--;
+        }, 1000);
+    }
+
+    function backToRegisterForm() {
+        clearInterval(timerInterval);
+        document.getElementById('otpVerifyStep').style.display = 'none';
+        document.getElementById('registerFormStep').style.display = 'block';
+    }
+</script>
+{% endblock %}

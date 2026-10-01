@@ -1,0 +1,465 @@
+/* =========================================================
+   VINORA — SUBSCRIPTIONS PAGE STYLES (Fully Responsive)
+   ========================================================= */
+
+.subs-page-wrapper {
+    min-height: calc(88vh - var(--header-h));
+    padding: clamp(20px, 4vw, 40px) 16px 80px;
+}
+
+.subs-container {
+    width: min(calc(100% - 16px), 1080px);
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(24px, 4vw, 36px);
+}
+
+/* کارت بزرگ اشتراک فعلی */
+.current-sub-card {
+    background: var(--surface-card);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-lg);
+    padding: clamp(1.4rem, 3.5vw, 2.4rem);
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+}
+
+.current-sub-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--vinora-teal), var(--vinora-coral));
+}
+
+.sub-loading-box {
+    text-align: center;
+    padding: 30px;
+    color: var(--muted);
+}
+
+/* لایه‌بندی اشتراک فعال */
+.active-sub-layout {
+    display: flex;
+    align-items: center;
+    gap: clamp(20px, 4vw, 40px);
+}
+
+/* =========================================================
+   دایره روزشمار با ساختار لایه‌ای دقیق (مرکز قرار گرفتن عدد)
+   ========================================================= */
+.sub-progress-circle-wrap {
+    position: relative;
+    width: 150px;
+    height: 150px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.progress-ring {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 150px;
+    height: 150px;
+    transform: rotate(-90deg);
+}
+
+.progress-ring-bar {
+    transition: stroke-dashoffset 0.6s ease;
+}
+
+.progress-circle-inner {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    pointer-events: none;
+}
+
+.progress-circle-inner strong {
+    font-size: 2.3rem;
+    font-weight: 900;
+    color: var(--text);
+    line-height: 1;
+}
+
+.progress-circle-inner span {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-top: 4px;
+}
+
+/* اطلاعات متنی اشتراک */
+.active-sub-meta {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-width: 0;
+}
+
+.active-badge-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.active-badge {
+    background: rgba(34, 197, 94, 0.15);
+    color: var(--success);
+    border: 1px solid rgba(34, 197, 94, 0.35);
+    padding: 3px 10px;
+    border-radius: var(--radius-pill);
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.active-plan-title {
+    font-size: clamp(1.25rem, 3vw, 1.55rem);
+    font-weight: 900;
+    color: var(--text);
+    margin: 0;
+}
+
+.active-sub-sentence {
+    font-size: clamp(0.88rem, 1.8vw, 0.98rem);
+    color: var(--text-dim);
+}
+
+.active-sub-sentence strong {
+    color: var(--vinora-teal);
+    font-weight: 900;
+}
+
+.sub-dates-grid {
+    display: flex;
+    gap: clamp(14px, 3vw, 28px);
+    flex-wrap: wrap;
+}
+
+.sub-date-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.88rem;
+}
+
+.sub-date-label {
+    color: var(--muted);
+}
+
+.sub-date-val {
+    color: var(--text);
+    font-weight: 700;
+}
+
+.active-sub-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+    flex-wrap: wrap;
+}
+
+/* =========================================================
+   سوییچ تمدید خودکار (کامپوننت تم استایل هدر)
+   ========================================================= */
+.auto-renew-switch-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.sub-theme-toggle {
+    margin: 0;
+    cursor: pointer;
+}
+
+.auto-renew-label {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text-dim);
+}
+
+/* لایه‌بندی فاقد اشتراک */
+.no-sub-layout {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.no-sub-icon {
+    width: clamp(54px, 8vw, 64px);
+    height: clamp(54px, 8vw, 64px);
+    border-radius: 50%;
+    background: rgba(250, 150, 135, 0.12);
+    color: var(--vinora-coral);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    flex-shrink: 0;
+}
+
+.no-sub-content h3 {
+    font-size: clamp(1.05rem, 2.5vw, 1.25rem);
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 6px;
+}
+
+.no-sub-content p {
+    color: var(--muted);
+    font-size: clamp(0.85rem, 1.8vw, 0.92rem);
+    line-height: 1.8;
+}
+
+/* بخش کاتالوگ و خرید اشتراک */
+.plans-catalog-section {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.section-title-wrap {
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.section-title-wrap h2 {
+    font-size: clamp(1.35rem, 3vw, 1.7rem);
+    font-weight: 900;
+    margin: 10px 0 6px;
+}
+
+.section-title-wrap p {
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+.plans-selection-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 20px;
+}
+
+.catalog-state-box {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 2.4rem;
+    color: var(--muted);
+}
+
+.catalog-state-box.error {
+    color: var(--danger);
+}
+
+.plan-item-card {
+    background: var(--surface-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: clamp(1.6rem, 3vw, 2.2rem) 1.6rem;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    position: relative;
+    transition: var(--transition);
+}
+
+.plan-item-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--border-strong);
+}
+
+.plan-item-card.featured {
+    border-color: var(--vinora-teal);
+    box-shadow: 0 16px 40px var(--glow-teal);
+    background: linear-gradient(165deg, rgba(21, 180, 178, 0.08), var(--surface-card) 60%);
+}
+
+.plan-item-card.featured::before {
+    content: "پیشنهاد ویژه";
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(90deg, var(--vinora-teal), var(--vinora-coral));
+    color: #04201f;
+    font-size: 0.74rem;
+    font-weight: 800;
+    padding: 4px 14px;
+    border-radius: var(--radius-pill);
+}
+
+.plan-item-card h3 {
+    font-size: 1.2rem;
+    font-weight: 800;
+    margin-bottom: 6px;
+}
+
+.plan-price-row {
+    margin: 8px 0 14px;
+}
+
+.plan-price-row strong {
+    font-size: clamp(1.6rem, 3.5vw, 2rem);
+    font-weight: 900;
+    color: var(--vinora-teal);
+}
+
+.plan-price-row span {
+    font-size: 0.8rem;
+    color: var(--muted);
+}
+
+.plan-desc-text {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 1.2rem;
+    min-height: 40px;
+}
+
+.plan-feature-bullets {
+    text-align: right;
+    margin-bottom: 1.8rem;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.plan-feature-bullets li {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.plan-feature-bullets li i {
+    color: var(--vinora-teal);
+    font-weight: 900;
+}
+
+/* جدول سابقه */
+.sub-history-section {
+    background: var(--surface-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: clamp(1.2rem, 3vw, 2.2rem);
+}
+
+.history-title-wrap h3 {
+    font-size: clamp(1.05rem, 2.5vw, 1.2rem);
+    font-weight: 800;
+    margin-bottom: 1.4rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sub-history-table {
+    width: 100%;
+    min-width: 560px;
+    border-collapse: collapse;
+    text-align: right;
+    font-size: 0.88rem;
+}
+
+.sub-history-table th {
+    padding: 12px 14px;
+    color: var(--muted);
+    font-weight: 700;
+    border-bottom: 2px solid var(--border-strong);
+    white-space: nowrap;
+}
+
+.sub-history-table td {
+    padding: 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+}
+
+.tx-status-pill {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: var(--radius-pill);
+    font-size: 0.76rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.status-success {
+    background: rgba(34, 197, 94, 0.15);
+    color: var(--success);
+}
+
+.status-pending {
+    background: rgba(245, 185, 66, 0.15);
+    color: var(--gold);
+}
+
+.status-failed {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--danger);
+}
+
+.status-expired {
+    background: rgba(139, 147, 167, 0.15);
+    color: var(--muted);
+}
+
+.text-muted-cell {
+    color: var(--muted);
+}
+
+.table-empty-cell {
+    text-align: center;
+    padding: 30px !important;
+    color: var(--muted);
+}
+
+/* ریسپانسیو */
+@media (max-width: 768px) {
+    .active-sub-layout {
+        flex-direction: column;
+        text-align: center;
+        gap: 20px;
+    }
+
+    .sub-dates-grid {
+        justify-content: center;
+    }
+
+    .active-sub-controls {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 14px;
+    }
+
+    .auto-renew-switch-group {
+        justify-content: center;
+    }
+
+    .active-sub-controls .btn-outline-danger {
+        width: 100%;
+    }
+
+    .no-sub-layout {
+        flex-direction: column;
+        text-align: center;
+    }
+}

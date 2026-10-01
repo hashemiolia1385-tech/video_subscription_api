@@ -1,0 +1,348 @@
+/* =========================================================
+   VINORA — WALLET & TRANSACTIONS DESIGN (Fully Responsive)
+   ========================================================= */
+
+.wallet-page-wrapper {
+    min-height: calc(88vh - var(--header-h));
+    padding: clamp(20px, 4vw, 40px) 16px 80px;
+}
+
+.wallet-container {
+    width: min(calc(100% - 16px), 1040px);
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(18px, 3vw, 28px);
+}
+
+/* کارت گرادینت موجودی */
+.wallet-balance-card {
+    background: var(--surface-card);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-lg);
+    padding: clamp(1.4rem, 3.5vw, 2.4rem);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+    gap: 20px;
+}
+
+.wallet-balance-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--vinora-teal), var(--vinora-coral));
+}
+
+.wallet-balance-info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+}
+
+.wallet-label {
+    font-size: clamp(0.85rem, 2vw, 0.95rem);
+    font-weight: 700;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.wallet-label i {
+    color: var(--vinora-teal);
+    font-size: 1.1rem;
+}
+
+.wallet-amount-row {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin: 4px 0;
+    flex-wrap: wrap;
+}
+
+.wallet-amount {
+    font-size: clamp(2rem, 5vw, 2.8rem);
+    font-weight: 900;
+    color: var(--text);
+    letter-spacing: -1px;
+    line-height: 1.1;
+}
+
+.wallet-currency {
+    font-size: clamp(0.95rem, 2vw, 1.1rem);
+    font-weight: 700;
+    color: var(--vinora-teal);
+}
+
+.wallet-desc {
+    color: var(--muted);
+    font-size: clamp(0.82rem, 1.8vw, 0.88rem);
+    max-width: 480px;
+    line-height: 1.8;
+}
+
+/* جدول تراکنش‌ها */
+.wallet-transactions-section {
+    background: var(--surface-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: clamp(1.2rem, 3vw, 2.2rem);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.transactions-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.4rem;
+    gap: 10px;
+}
+
+.transactions-header h2 {
+    font-size: clamp(1.1rem, 2.5vw, 1.25rem);
+    font-weight: 800;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+}
+
+.transactions-header h2 i {
+    color: var(--vinora-coral);
+}
+
+.tx-badge-count {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--vinora-teal);
+    background: rgba(21, 180, 178, 0.1);
+    border: 1px solid rgba(21, 180, 178, 0.25);
+    padding: 3px 10px;
+    border-radius: var(--radius-pill);
+    white-space: nowrap;
+}
+
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.wallet-table {
+    width: 100%;
+    min-width: 580px;
+    border-collapse: collapse;
+    text-align: right;
+    font-size: 0.9rem;
+}
+
+.wallet-table th {
+    padding: 12px 14px;
+    color: var(--muted);
+    font-weight: 700;
+    border-bottom: 2px solid var(--border-strong);
+    white-space: nowrap;
+}
+
+.wallet-table td {
+    padding: 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    vertical-align: middle;
+}
+
+.wallet-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.tx-type-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 9px;
+    border-radius: var(--radius-pill);
+    font-size: 0.78rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.tx-type-pill.type-deposit {
+    background: rgba(34, 197, 94, 0.12);
+    color: var(--success);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.tx-type-pill.type-payment {
+    background: rgba(250, 150, 135, 0.12);
+    color: var(--vinora-coral);
+    border: 1px solid rgba(250, 150, 135, 0.3);
+}
+
+.tx-amount {
+    direction: ltr;
+    display: inline-block;
+    white-space: nowrap;
+}
+
+.tx-amount.type-deposit {
+    color: var(--success);
+}
+
+.tx-amount.type-payment {
+    color: var(--vinora-coral);
+}
+
+.tx-desc {
+    color: var(--text-dim);
+    font-size: 0.85rem;
+}
+
+.tx-status-pill {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 0.76rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.tx-status-pill.status-success {
+    background: rgba(34, 197, 94, 0.15);
+    color: var(--success);
+}
+
+.tx-status-pill.status-pending {
+    background: rgba(245, 185, 66, 0.15);
+    color: var(--gold);
+}
+
+.tx-status-pill.status-failed {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--danger);
+}
+
+.tx-date {
+    font-size: 0.8rem;
+    color: var(--muted);
+    white-space: nowrap;
+}
+
+.table-state-msg {
+    text-align: center;
+    padding: 40px 10px !important;
+    color: var(--muted);
+}
+
+.table-state-msg i {
+    font-size: 1.8rem;
+    display: block;
+    margin-bottom: 8px;
+    color: var(--vinora-teal);
+}
+
+/* بخش ورودی مبلغ در مودال شارژ */
+.search-style-input-bar {
+    display: flex;
+    align-items: center;
+    background: var(--surface-card, #131826);
+    border: 2px solid var(--border-strong, rgba(255, 255, 255, 0.15));
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    transition: border-color var(--transition);
+}
+
+.search-style-input-bar:focus-within {
+    border-color: var(--vinora-teal);
+}
+
+.input-with-icon-wrap {
+    flex: 1;
+    display: flex;
+}
+
+.search-styled-amount-input {
+    width: 100%;
+    padding: 0.9rem 1.2rem;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.currency-addon-wrap {
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    border-right: 2px solid var(--border);
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.currency-tag {
+    color: var(--vinora-teal);
+    font-size: 0.9rem;
+    font-weight: 800;
+}
+
+.quick-amounts-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin: 1rem 0 1.4rem;
+}
+
+.btn-quick-amount {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 8px 4px;
+    color: var(--text-dim);
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    text-align: center;
+    transition: var(--transition);
+}
+
+.btn-quick-amount:hover {
+    border-color: var(--vinora-teal);
+    color: var(--vinora-teal);
+}
+
+@media (max-width: 768px) {
+    .wallet-balance-card {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+    }
+
+    .wallet-label,
+    .wallet-amount-row {
+        justify-content: center;
+    }
+
+    .wallet-desc {
+        margin: 0 auto;
+    }
+
+    .wallet-balance-actions .btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .quick-amounts-grid {
+        grid-template-columns: 1fr;
+    }
+}

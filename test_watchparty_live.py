@@ -9,14 +9,17 @@ import django
 django.setup()
 
 from django.contrib.auth import get_user_model
+from django.utils import timezone
+from datetime import timedelta
 from playwright.sync_api import sync_playwright
 from rest_framework_simplejwt.tokens import RefreshToken
 from videos.models import Video
+from subscriptions.models import Subscription, SubscriptionPlan
 
 User = get_user_model()
 
 BASE_URL = "http://127.0.0.1:8000"
-USER_NAMES = [f"test_user{i}" for i in range(1, 5)]
+USER_NAMES = ["test_user1", "test_user2"]
 TEST_PASSWORD = "Password123!"
 
 
@@ -32,11 +35,25 @@ def cleanup_database():
         print(f"⚠️ خطا در پاکسازی: {e}")
 
 
-def get_jwt_token_direct(username, password):
+def get_jwt_token_and_active_subscription(username, password):
     user, _ = User.objects.get_or_create(username=username)
     user.set_password(password)
     user.is_active = True
     user.save()
+
+    # ایجاد اشتراک فعال برای کاربر تستی جهت مجاز بودن به واچ‌پارتی
+    plan = SubscriptionPlan.objects.first()
+    if plan:
+        Subscription.objects.update_or_create(
+            user=user,
+            defaults={
+                "plan": plan,
+                "start_date": timezone.now(),
+                "end_date": timezone.now() + timedelta(days=30),
+                "status": Subscription.Status.ACTIVE,
+                "auto_renew": False,
+            },
+        )
 
     refresh = RefreshToken.for_user(user)
     return str(refresh.access_token)
@@ -50,25 +67,26 @@ def main():
     signal.signal(signal.SIGINT, sig_handler)
     signal.signal(signal.SIGTERM, sig_handler)
 
-    # یافتن شناسه فیلم (در صورت نبودن، اولین فیلم را برمی‌دارد)
-    video = (
-        Video.objects.filter(title__icontains="Inception").first()
-        or Video.objects.first()
-    )
+    video = Video.objects.filter(id=1).first() or Video.objects.first()
     if not video:
-        print("❌ هیچ ویدیویی در دیتابیس برای ساخت چت‌روم پیدا نشد!")
+        print("❌ هیچ فیلمی در دیتابیس پیدا نشد!")
         return
 
     video_id = video.id
-    print(f"🎬 چت‌روم اختصاصی: {video.title} (ID: {video_id})")
+    print(f"🎬 اتاق واچ‌پارتی برای فیلم: {video.title} (ID: {video_id})")
 
-    print("🚀 در حال ایجاد کاربران و صدور توکن‌ها...")
-    tokens = {user: get_jwt_token_direct(user, TEST_PASSWORD) for user in USER_NAMES}
-    print("✅ توکن‌ها صادر شدند.")
+    print("🚀 در حال ایجاد ۲ کاربر تستی با اشتراک فعال و صدور توکن‌ها...")
+    tokens = {
+        user: get_jwt_token_and_active_subscription(user, TEST_PASSWORD)
+        for user in USER_NAMES
+    }
+    print("✅ توکن‌ها و اشتراک فعال ایجاد شدند.")
+
+    test_room_code = "party777"
 
     try:
         with sync_playwright() as p:
-            print("🌐 در حال راه‌اندازی ۴ پنجره کرومیوم...")
+            print("🌐 در حال راه‌اندازی ۲ پنجره مرورگر متصل به یک اتاق مشترک...")
 
             browser = p.chromium.launch(
                 headless=False,
@@ -79,40 +97,40 @@ def main():
                 ],
             )
 
-            party_url = f"{BASE_URL}/player/{video_id}/"
+            # هر دو کاربر با یک لینک اتاق باز می‌شوند
+            party_url = (
+                f"{BASE_URL}/player/{video_id}/?party=true&room={test_room_code}"
+            )
             pages = []
 
-            # باز کردن و اتصال هر ۴ کاربر
             for username in USER_NAMES:
-                context = browser.new_context(viewport={"width": 640, "height": 600})
+                context = browser.new_context(viewport={"width": 680, "height": 760})
                 page = context.new_page()
                 pages.append(page)
 
                 page.goto(party_url)
                 page.fill("#jwtTokenInput", tokens[username])
                 page.click("#connectBtn")
-                page.wait_for_selector(".status-dot.online", timeout=15000)
-                print(f"🟢 کاربر {username} متصل شد.")
+                page.wait_for_selector(".status-badge.online", timeout=15000)
+                print(f"🟢 کاربر {username} به اتاق {test_room_code} متصل شد.")
 
-            # ارسال پیام تست توسط test_user1
             time.sleep(1)
             pages[0].fill(
-                "#chatInput", "سلام به همگی! به چت روم واچ پارتی ۴ نفره خوش اومدید."
+                "#chatInput", "سلام! لینک اتاق رو گرفتم و با موفقیت بهت وصل شدم."
             )
             pages[0].click("#sendBtn")
 
             print("\n" + "=" * 65)
-            print("🎉 چت روم واچ پارتی ۴ نفره آنلاین و کاملاً پایدار است:")
-            print("- با اکانت‌ها پیام بفرستید و دریافت بلادرنگ را ببینید.")
-            print("- با بستن تمام پنجره‌ها، اسکریپت اکانت‌ها را پاک می‌کند.")
+            print("🎉 واچ‌پارتی پویا با لینک اتاق اختصاصی فعال است:")
+            print("- لینک اتاق در بالای صفحه پلیر برای هر کاربر وجود دارد.")
+            print("- با توقف، پخش یا جلو/عقب بردن، وضعیت هر دو پنجره هماهنگ می‌ماند.")
             print("=" * 65 + "\n")
 
             while True:
                 time.sleep(1)
-                # بررسی اینکه آیا حداقل یک پنجره باز است یا خیر
-                alive_pages = [p for p in pages if not p.is_closed()]
+                alive_pages = [page for page in pages if not page.is_closed()]
                 if not alive_pages:
-                    print("🛑 تمامی پنجره‌های چت بسته شدند.")
+                    print("🛑 تمامی پنجره‌ها بسته شدند.")
                     break
 
     except Exception as e:

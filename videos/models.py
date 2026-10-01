@@ -23,6 +23,20 @@ class Video(models.Model):
     def __str__(self):
         return self.title
 
+    @property
+    def poster_url(self):
+        if not self.thumbnail:
+            return "/static/img/Fight_Club.jpg"
+        thumb_str = str(self.thumbnail)
+        if "/static/" in thumb_str:
+            return thumb_str[thumb_str.find("/static/") :]
+        if thumb_str.startswith("http://") or thumb_str.startswith("https://"):
+            return thumb_str
+        try:
+            return self.thumbnail.url
+        except Exception:
+            return f"/media/{thumb_str}"
+
 
 class CastCrew(models.Model):
     full_name = models.CharField(max_length=255)

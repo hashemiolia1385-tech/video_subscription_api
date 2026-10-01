@@ -1,0 +1,382 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}پروفایل کاربری | وینورا{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/profile.css' %}?v=1.3">
+{% endblock %}
+
+{% block content %}
+<div class="profile-page-wrapper">
+    <div class="profile-container">
+
+        <!-- کارت هدر اطلاعات کاربر -->
+        <div class="profile-hero-card">
+            <div class="profile-avatar-wrap">
+                <img id="userAvatarImg" src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&q=80" alt="آواتار کاربر">
+                <span class="avatar-status-dot"></span>
+            </div>
+            <div class="profile-hero-info">
+                <div class="profile-names">
+                    <h1 id="userFullName" class="profile-name">در حال دریافت...</h1>
+                    <span id="userUsername" class="profile-badge-username">@username</span>
+                </div>
+                <p id="userJoinedDate" class="profile-joined-text"><i class="bi bi-calendar3"></i> تاریخ عضویت: —</p>
+            </div>
+            <div class="profile-hero-action">
+                <a href="/profile/edit/" class="btn btn-outline btn-sm">
+                    <i class="bi bi-pencil-square"></i> ویرایش مشخصات
+                </a>
+            </div>
+        </div>
+
+        <!-- آمارهای سریع: کیف پول، اشتراک و تماشا -->
+        <div class="profile-stats-grid">
+            <a href="/wallet/" class="stat-card stat-card-link">
+                <div class="stat-icon teal"><i class="bi bi-wallet2"></i></div>
+                <div class="stat-meta">
+                    <span class="stat-label">موجودی کیف پول</span>
+                    <strong id="statWalletBalance" class="stat-value">۰ تومان</strong>
+                </div>
+                <span class="stat-link" title="شارژ کیف پول"><i class="bi bi-arrow-left"></i></span>
+            </a>
+
+            <div class="stat-card stat-card-link" onclick="openProfileSubModal()">
+                <div class="stat-icon coral"><i class="bi bi-shield-check"></i></div>
+                <div class="stat-meta">
+                    <span class="stat-label">وضعیت اشتراک</span>
+                    <strong id="statSubStatus" class="stat-value">در حال بررسی...</strong>
+                </div>
+                <span class="stat-link" title="جزئیات اشتراک"><i class="bi bi-arrow-left"></i></span>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon gold"><i class="bi bi-play-circle"></i></div>
+                <div class="stat-meta">
+                    <span class="stat-label">علاقه‌مندی‌ها و تاریخچه</span>
+                    <strong id="statHistoryLink" class="stat-value">مشاهده تماشاها</strong>
+                </div>
+                <a href="/history/" class="stat-link" title="تاریخچه تماشا"><i class="bi bi-arrow-left"></i></a>
+            </div>
+        </div>
+
+        <!-- کارت اطلاعات هویتی و امنیتی کاربر -->
+        <div class="profile-details-card">
+            <h2 class="card-inner-title"><i class="bi bi-person-lines-fill"></i> اطلاعات حساب کاربری</h2>
+            <div class="details-list">
+                <div class="detail-item">
+                    <span class="detail-label"><i class="bi bi-person"></i> نام کامل:</span>
+                    <span id="detailFullName" class="detail-val">—</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label"><i class="bi bi-at"></i> نام کاربری:</span>
+                    <span id="detailUsername" class="detail-val text-ltr">—</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label"><i class="bi bi-gender-ambiguous"></i> جنسیت:</span>
+                    <span id="detailGender" class="detail-val">—</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label"><i class="bi bi-telephone"></i> شماره موبایل:</span>
+                    <span id="detailPhone" class="detail-val text-ltr">—</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label"><i class="bi bi-envelope"></i> ایمیل:</span>
+                    <span id="detailEmail" class="detail-val text-ltr">—</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ==================== مودال شیشه‌ای جزئیات اشتراک در پروفایل ==================== -->
+<div id="profileSubDetailModal" class="vinora-modal-overlay">
+    <div class="vinora-modal-card profile-sub-modal-card">
+        <div class="modal-header">
+            <h3><i class="bi bi-shield-check"></i> وضعیت اشتراک من</h3>
+            <button type="button" class="modal-close-btn" onclick="closeProfileSubModal()"><i class="bi bi-x-lg"></i></button>
+        </div>
+
+        <div id="profileSubModalContent">
+            <!-- حالت فعال -->
+            <div id="profileSubActiveBox" style="display: none;">
+                <div class="sub-progress-circle-wrap modal-circle-center">
+                    <svg class="progress-ring" width="130" height="130">
+                        <circle stroke="rgba(255,255,255,0.06)" stroke-width="9" cx="65" cy="65" r="54" fill="transparent"/>
+                        <circle id="profileRingBar" class="progress-ring-bar" stroke="url(#modalVinoraGrad)" stroke-width="9" stroke-linecap="round" cx="65" cy="65" r="54" fill="transparent"/>
+                        <defs>
+                            <linearGradient id="modalVinoraGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="var(--vinora-teal)"/>
+                                <stop offset="100%" stop-color="var(--vinora-coral)"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                    <div class="progress-circle-inner">
+                        <strong id="modalDaysLeft">۰</strong>
+                        <span>روز مانده</span>
+                    </div>
+                </div>
+
+                <p class="profile-sub-sentence">شما اشتراک <strong id="modalPlanMonths">۱</strong> ماهه فعال دارید.</p>
+
+                <div class="modal-sub-info-grid">
+                    <div class="modal-info-row">
+                        <span class="label">نوع اشتراک:</span>
+                        <strong id="modalPlanTitle" class="val text-teal">—</strong>
+                    </div>
+                    <div class="modal-info-row">
+                        <span class="label">تاریخ خرید:</span>
+                        <strong id="modalStartDate" class="val">—</strong>
+                    </div>
+                    <div class="modal-info-row">
+                        <span class="label">تاریخ انقضا:</span>
+                        <strong id="modalEndDate" class="val">—</strong>
+                    </div>
+                </div>
+
+                <div class="modal-controls-row">
+                    <div class="auto-renew-switch-group">
+                        <label class="theme-toggle sub-theme-toggle" title="تغییر وضعیت تمدید خودکار">
+                            <span class="icon"><i class="bi bi-x-circle"></i></span>
+                            <input type="checkbox" id="modalAutoRenewToggle" onchange="handleModalToggleAutoRenew(this)">
+                            <span class="track"><span class="thumb"></span></span>
+                            <span class="icon"><i class="bi bi-check-circle"></i></span>
+                        </label>
+                        <span class="auto-renew-label">تمدید خودکار</span>
+                    </div>
+
+                    <button type="button" class="btn btn-cancel-coral" onclick="handleModalCancelSub()">
+                        <i class="bi bi-x-circle"></i> لغو اشتراک
+                    </button>
+                </div>
+            </div>
+
+            <!-- حالت غیرفعال -->
+            <div id="profileSubInactiveBox" style="display: none; text-align: center; padding: 16px 0 20px;">
+                <i class="bi bi-shield-slash" style="font-size: 2.8rem; color: var(--vinora-coral);"></i>
+                <p style="margin: 12px 0 4px; font-weight: 800; font-size: 1.05rem;">فاقد اشتراک فعال</p>
+                <p style="color: var(--muted); font-size: 0.88rem; margin-bottom: 1.2rem;">شما در حال حاضر هیچ اشتراک فعالی روی حساب خود ندارید.</p>
+                
+                <div class="modal-controls-row" style="justify-content: center; gap: 20px;">
+                    <div class="auto-renew-switch-group">
+                        <label class="theme-toggle sub-theme-toggle" title="تمدید خودکار">
+                            <span class="icon"><i class="bi bi-x-circle"></i></span>
+                            <input type="checkbox" onchange="alertNoSubWarning(this)">
+                            <span class="track"><span class="thumb"></span></span>
+                            <span class="icon"><i class="bi bi-check-circle"></i></span>
+                        </label>
+                        <span class="auto-renew-label">تمدید خودکار</span>
+                    </div>
+                    <button type="button" class="btn btn-cancel-coral" onclick="alertNoSubWarning()">
+                        <i class="bi bi-x-circle"></i> لغو اشتراک
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer-action-btn">
+            <a href="/subscriptions/" class="btn btn-buy-teal btn-block">
+                <i class="bi bi-gem"></i> خرید اشتراک
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== مودال شیشه‌ای تایید لغو اشتراک (داخل پروفایل) ==================== -->
+<div id="profileCancelSubModal" class="vinora-modal-overlay">
+    <div class="vinora-modal-card">
+        <div class="modal-header">
+            <h3 class="text-danger"><i class="bi bi-x-octagon"></i> لغو اشتراک فعال</h3>
+            <button type="button" class="modal-close-btn" onclick="closeProfileCancelModal()"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div class="modal-body-content">
+            <p>آیا از لغو اشتراک فعال خود اطمینان کامل دارید؟</p>
+            <p class="modal-subtext">با حذف اشتراک، دسترسی شما به فیلم‌های اختصاصی فوراً قطع خواهد شد.</p>
+        </div>
+        <div class="modal-footer-btns">
+            <button type="button" id="btnProfileExecuteCancel" class="btn btn-danger-solid flex-1" onclick="executeProfileCancelSubscription()">
+                <i class="bi bi-trash3"></i> حذف اشتراک
+            </button>
+            <button type="button" class="btn btn-outline flex-1" onclick="closeProfileCancelModal()">انصراف</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    let profileActiveSubData = null;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        const token = localStorage.getItem(AUTH_ACCESS_KEY);
+        if (!token) {
+            window.location.href = '/login/';
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/accounts/me/', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (res.status === 401) {
+                logoutUser();
+                return;
+            }
+
+            const data = await res.json();
+            const fullName = (data.first_name || data.last_name) 
+                ? `${data.first_name || ''} ${data.last_name || ''}`.trim() 
+                : 'کاربر بدون نام';
+
+            document.getElementById('userFullName').innerText = fullName;
+            document.getElementById('detailFullName').innerText = fullName;
+            document.getElementById('userUsername').innerText = `@${data.username}`;
+            document.getElementById('detailUsername').innerText = data.username;
+            document.getElementById('detailPhone').innerText = data.phone_number || 'ثبت نشده';
+            document.getElementById('detailEmail').innerText = data.email || 'ثبت نشده';
+
+            const genderMap = { 'male': 'مرد', 'female': 'زن', 'other': 'سایر' };
+            const genderEl = document.getElementById('detailGender');
+            if (genderEl) {
+                genderEl.innerText = genderMap[data.gender] || 'ثبت نشده';
+            }
+
+            if (data.avatar_url) {
+                document.getElementById('userAvatarImg').src = data.avatar_url;
+            }
+
+            if (data.created_at || data.date_joined) {
+                const date = new Date(data.created_at || data.date_joined).toLocaleDateString('fa-IR');
+                document.getElementById('userJoinedDate').innerHTML = `<i class="bi bi-calendar3"></i> عضویت از: ${date}`;
+            }
+
+            const walletRes = await fetch('/api/payments/wallet/', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (walletRes.ok) {
+                const wData = await walletRes.json();
+                document.getElementById('statWalletBalance').innerText = `${Number(wData.balance).toLocaleString('fa-IR')} تومان`;
+            }
+
+            const subRes = await fetch('/api/subscriptions/my-subscription/', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (subRes.ok) {
+                profileActiveSubData = await subRes.json();
+                const subEl = document.getElementById('statSubStatus');
+                if (profileActiveSubData.has_active_subscription && profileActiveSubData.is_valid) {
+                    subEl.innerText = `اشتراک فعال (${profileActiveSubData.days_left} روز)`;
+                    subEl.className = 'stat-value sub-active-text';
+                } else {
+                    if (profileActiveSubData.detail && profileActiveSubData.detail.includes('کمبود موجودی')) {
+                        subEl.innerText = 'کمبود موجودی برای تمدید خودکار';
+                    } else {
+                        subEl.innerText = 'فاقد اشتراک فعال';
+                    }
+                    subEl.className = 'stat-value sub-inactive-text';
+                }
+            }
+
+        } catch (e) {
+            console.error('خطا در دریافت اطلاعات کاربر:', e);
+        }
+    });
+
+    function openProfileSubModal() {
+        const modal = document.getElementById('profileSubDetailModal');
+        const activeBox = document.getElementById('profileSubActiveBox');
+        const inactiveBox = document.getElementById('profileSubInactiveBox');
+
+        if (profileActiveSubData && profileActiveSubData.has_active_subscription && profileActiveSubData.is_valid) {
+            inactiveBox.style.display = 'none';
+            activeBox.style.display = 'block';
+
+            document.getElementById('modalDaysLeft').innerText = profileActiveSubData.days_left;
+            document.getElementById('modalPlanTitle').innerText = profileActiveSubData.plan ? profileActiveSubData.plan.name : 'اشتراک فعال';
+            document.getElementById('modalStartDate').innerText = new Date(profileActiveSubData.start_date).toLocaleDateString('fa-IR');
+            document.getElementById('modalEndDate').innerText = new Date(profileActiveSubData.end_date).toLocaleDateString('fa-IR');
+            document.getElementById('modalAutoRenewToggle').checked = !!profileActiveSubData.auto_renew;
+
+            const circle = document.getElementById('profileRingBar');
+            const total = profileActiveSubData.plan && profileActiveSubData.plan.duration_days ? profileActiveSubData.plan.duration_days : 30;
+            const monthsCount = Math.max(Math.round(total / 30), 1);
+            document.getElementById('modalPlanMonths').innerText = monthsCount.toLocaleString('fa-IR');
+            const fraction = Math.min(Math.max(profileActiveSubData.days_left / total, 0), 1);
+            const radius = circle.r.baseVal.value;
+            const circumference = 2 * Math.PI * radius;
+            circle.style.strokeDasharray = `${circumference} ${circumference}`;
+            circle.style.strokeDashoffset = circumference - (fraction * circumference);
+        } else {
+            activeBox.style.display = 'none';
+            inactiveBox.style.display = 'block';
+        }
+
+        modal.classList.add('active');
+    }
+
+    function closeProfileSubModal() {
+        document.getElementById('profileSubDetailModal').classList.remove('active');
+    }
+
+    function alertNoSubWarning(el) {
+        if (el) el.checked = false;
+        alert('شما در حال حاضر هیچ اشتراک فعالی ندارید.');
+    }
+
+    async function handleModalToggleAutoRenew(el) {
+        const token = localStorage.getItem(AUTH_ACCESS_KEY);
+        try {
+            const res = await fetch('/api/subscriptions/toggle-auto-renew/', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                if (profileActiveSubData) profileActiveSubData.auto_renew = data.auto_renew;
+            } else {
+                el.checked = !el.checked;
+            }
+        } catch (e) {
+            el.checked = !el.checked;
+        }
+    }
+
+    function handleModalCancelSub() {
+        document.getElementById('profileCancelSubModal').classList.add('active');
+    }
+
+    function closeProfileCancelModal() {
+        document.getElementById('profileCancelSubModal').classList.remove('active');
+    }
+
+    async function executeProfileCancelSubscription() {
+        const token = localStorage.getItem(AUTH_ACCESS_KEY);
+        const btn = document.getElementById('btnProfileExecuteCancel');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bi bi-hourglass-split"></i> در حال لغو...';
+
+        try {
+            const res = await fetch('/api/subscriptions/cancel/', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                closeProfileCancelModal();
+                closeProfileSubModal();
+                window.location.reload();
+            } else {
+                const data = await res.json();
+                alert(data.detail || 'خطا در لغو اشتراک.');
+            }
+        } catch (e) {
+            alert('خطای سرور در لغو اشتراک.');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-trash3"></i> حذف اشتراک';
+        }
+    }
+</script>
+{% endblock %}

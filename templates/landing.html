@@ -38,18 +38,6 @@
             <div class="hero-stat"><strong>4K</strong><span>کیفیت اولترا اچ‌دی</span></div>
             <div class="hero-stat"><strong>زنده</strong><span>واچ‌پارتی ریل‌تایم</span></div>
         </div>
-
-        <!-- ویترین شناور پوستر فیلم‌ها -->
-        <div class="hero-showcase" aria-hidden="true">
-            <div class="showcase-poster sp-1"><img src="{% static 'img/Interstellar.jpeg' %}" alt=""></div>
-            <div class="showcase-poster sp-3"><img src="{% static 'img/The_Matrix.png' %}" alt=""></div>
-            <div class="showcase-poster sp-2">
-                <img src="{% static 'img/The_Dark_Knight.jpg' %}" alt="">
-                <span class="showcase-badge"><i class="bi bi-star-fill"></i> 9.0</span>
-            </div>
-            <div class="showcase-poster sp-4"><img src="{% static 'img/Gladiator.png' %}" alt=""></div>
-            <div class="showcase-poster sp-5"><img src="{% static 'img/Inception.jpeg' %}" alt=""></div>
-        </div>
     </div>
 </section>
 
@@ -166,7 +154,45 @@
     document.addEventListener('DOMContentLoaded', () => {
         loadTopRatedVideos();
         loadSubscriptionPlans();
+        initScrollSpy();
     });
+
+    /* فعال‌سازی دقیق نشانگر فیروزه‌ای منوی هدر و برداشتن فعال بودن پس از خروج از سکشن */
+    function initScrollSpy() {
+        const sections = document.querySelectorAll('section[id]');
+        const navLinks = document.querySelectorAll('.nav-links a');
+        const plansNavLink = document.getElementById('navPlansLink');
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                const id = entry.target.getAttribute('id');
+                const matchingLink = Array.from(navLinks).find(l => {
+                    const href = l.getAttribute('href');
+                    return href === `/#${id}` || href === `#${id}`;
+                });
+
+                if (entry.isIntersecting) {
+                    if (id === 'plansSection' && plansNavLink) {
+                        navLinks.forEach(l => l.classList.remove('active'));
+                        plansNavLink.classList.add('active');
+                    } else if (matchingLink) {
+                        navLinks.forEach(l => l.classList.remove('active'));
+                        matchingLink.classList.add('active');
+                    }
+                } else {
+                    if (id === 'plansSection' && plansNavLink) {
+                        plansNavLink.classList.remove('active');
+                    } else if (matchingLink) {
+                        matchingLink.classList.remove('active');
+                    }
+                }
+            });
+        }, {
+            rootMargin: '-30% 0px -50% 0px'
+        });
+
+        sections.forEach(sec => observer.observe(sec));
+    }
 
     async function loadTopRatedVideos() {
         const track = document.getElementById('topVideosTrack');
@@ -183,7 +209,7 @@
             track.innerHTML = '';
             videos.forEach(v => {
                 const card = document.createElement('a');
-                card.href = `/player/${v.id}/`;
+                card.href = `/movie/${v.id}/`;
                 card.className = 'movie-card';
 
                 const rating = (v.average_rating && Number(v.average_rating) > 0) ? Number(v.average_rating).toFixed(1) : '—';
@@ -211,7 +237,7 @@
 
     function slideCarousel(direction) {
         const track = document.getElementById('topVideosTrack');
-        const amount = direction === 'left' ? 232 : -232;
+        const amount = direction === 'left' ? -232 : 232;
         track.scrollBy({ left: amount, behavior: 'smooth' });
     }
 
@@ -229,10 +255,12 @@
             }
 
             container.innerHTML = '';
-            plans.forEach((plan, idx) => {
-                const featured = plans.length > 1 && idx === 1;
+            plans.forEach(plan => {
+                const isSixMonth = plan.duration_days === 180 ||
+                                   (plan.name && (plan.name.includes('6') || plan.name.includes('شش')));
+
                 const card = document.createElement('div');
-                card.className = `pricing-card ${featured ? 'featured' : ''}`;
+                card.className = `pricing-card ${isSixMonth ? 'featured' : ''}`;
                 card.innerHTML = `
                     <h3 class="plan-name">${plan.name}</h3>
                     <div class="plan-price">${Number(plan.price).toLocaleString('fa-IR')} <span>تومان / ${plan.duration_days} روزه</span></div>
@@ -243,7 +271,7 @@
                         <li><i class="bi bi-check2-circle"></i> پشتیبانی از کیفیت Full HD و 4K</li>
                         <li><i class="bi bi-check2-circle"></i> بدون تبلیغات آزاردهنده</li>
                     </ul>
-                    <button onclick="handleSubscribePlan(${plan.id})" class="btn btn-primary btn-block">انتخاب و خرید اشتراک</button>
+                    <button onclick="handlePlanCardClick()" class="btn btn-primary btn-block">انتخاب و خرید اشتراک</button>
                 `;
                 container.appendChild(card);
             });
@@ -252,28 +280,12 @@
         }
     }
 
-    async function handleSubscribePlan(planId) {
+    function handlePlanCardClick() {
         const token = localStorage.getItem(AUTH_ACCESS_KEY);
         if (!token) {
-            alert('برای خرید اشتراک، لطفا ابتدا وارد حساب کاربری خود شو.');
             window.location.href = '/login/';
-            return;
-        }
-        try {
-            const res = await fetch('/api/subscriptions/purchase/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ plan_id: planId, auto_renew: false })
-            });
-            const data = await res.json();
-            if (res.ok) {
-                alert(`اشتراک با موفقیت فعال شد! انقضا: ${new Date(data.end_date).toLocaleDateString('fa-IR')}`);
-                window.location.reload();
-            } else {
-                alert(data.detail || 'خطا در ثبت اشتراک.');
-            }
-        } catch (err) {
-            alert('خطای شبکه در اتصال به سرور.');
+        } else {
+            window.location.href = '/subscriptions/';
         }
     }
 

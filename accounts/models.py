@@ -13,6 +13,31 @@ class User(AbstractUser):
         null=True,
         blank=True,
     )
+
+    class Gender(models.TextChoices):
+        MALE = "male", "مرد"
+        FEMALE = "female", "زن"
+        OTHER = "other", "سایر"
+
+    gender = models.CharField(
+        max_length=10,
+        choices=Gender.choices,
+        default=Gender.MALE,
+    )
+    avatar = models.ImageField(
+        upload_to="avatars/",
+        null=True,
+        blank=True,
+    )
+
+    @property
+    def default_avatar_url(self):
+        if self.avatar:
+            return self.avatar.url
+        if self.gender == self.Gender.FEMALE:
+            return "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&q=80"
+        return "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&q=80"
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

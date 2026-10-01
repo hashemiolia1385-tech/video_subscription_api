@@ -19,6 +19,26 @@ urlpatterns = [
     path(
         "login/", TemplateView.as_view(template_name="login.html"), name="vinora-login"
     ),
+    path(
+        "profile/",
+        TemplateView.as_view(template_name="profile.html"),
+        name="vinora-profile",
+    ),
+    path(
+        "profile/edit/",
+        TemplateView.as_view(template_name="profile_edit.html"),
+        name="vinora-profile-edit",
+    ),
+    path(
+        "wallet/",
+        TemplateView.as_view(template_name="wallet.html"),
+        name="vinora-wallet",
+    ),
+    path(
+        "subscriptions/",
+        TemplateView.as_view(template_name="subscriptions.html"),
+        name="vinora-subscriptions",
+    ),
     path("admin/", admin.site.urls),
     path("api/accounts/", include("accounts.urls")),
     path("api/subscriptions/", include("subscriptions.urls")),

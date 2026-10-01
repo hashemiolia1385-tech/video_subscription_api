@@ -1,0 +1,478 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}اشتراک‌ها و پلن‌ها | وینورا{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/subscriptions.css' %}?v=1.2">
+{% endblock %}
+
+{% block content %}
+<div class="subs-page-wrapper">
+    <div class="subs-container">
+
+        <!-- ۱. بخش وضعیت اشتراک کاربر -->
+        <div class="current-sub-card" id="currentSubCard">
+            <!-- حالت در حال لود -->
+            <div id="subLoadingState" class="sub-loading-box">
+                <i class="bi bi-hourglass-split"></i> در حال واکشی اطلاعات اشتراک...
+            </div>
+
+            <!-- حالت دارای اشتراک فعال -->
+            <div id="activeSubState" class="active-sub-layout" style="display: none;">
+                <!-- دایره روزشمار گرادینتی با موقعیت کاملاً وسط‌چین -->
+                <div class="sub-progress-circle-wrap">
+                    <svg class="progress-ring" width="150" height="150">
+                        <circle class="progress-ring-bg" stroke="rgba(255,255,255,0.06)" stroke-width="10" cx="75" cy="75" r="62" fill="transparent"/>
+                        <circle id="progressCircleBar" class="progress-ring-bar" stroke="url(#vinoraGradient)" stroke-width="10" stroke-linecap="round" cx="75" cy="75" r="62" fill="transparent"/>
+                        <defs>
+                            <linearGradient id="vinoraGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="var(--vinora-teal)"/>
+                                <stop offset="100%" stop-color="var(--vinora-coral)"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                    <div class="progress-circle-inner">
+                        <strong id="activeDaysLeft">۰</strong>
+                        <span>روز باقیمانده</span>
+                    </div>
+                </div>
+
+                <!-- اطلاعات متنی اشتراک فعال -->
+                <div class="active-sub-meta">
+                    <div class="active-badge-row">
+                        <span class="active-badge"><i class="bi bi-patch-check-fill"></i> فعال</span>
+                        <h2 id="activePlanName" class="active-plan-title">اشتراک وینورا</h2>
+                    </div>
+
+                    <p class="active-sub-sentence">شما اشتراک <strong id="activePlanMonths">۱</strong> ماهه فعال دارید.</p>
+
+                    <div class="sub-dates-grid">
+                        <div class="sub-date-item">
+                            <span class="sub-date-label"><i class="bi bi-calendar-check"></i> تاریخ خرید:</span>
+                            <strong id="activeStartDate" class="sub-date-val">—</strong>
+                        </div>
+                        <div class="sub-date-item">
+                            <span class="sub-date-label"><i class="bi bi-calendar-x"></i> تاریخ انقضا:</span>
+                            <strong id="activeEndDate" class="sub-date-val">—</strong>
+                        </div>
+                    </div>
+
+                    <!-- کنترل تمدید خودکار (مشابه استایل سوییچ تم هدر) و دکمه لغو -->
+                    <div class="active-sub-controls">
+                        <div class="auto-renew-switch-group">
+                            <label class="theme-toggle sub-theme-toggle" title="تغییر وضعیت تمدید خودکار">
+                                <span class="icon"><i class="bi bi-x-circle"></i></span>
+                                <input type="checkbox" id="autoRenewToggle" onchange="handleToggleAutoRenew(this)">
+                                <span class="track"><span class="thumb"></span></span>
+                                <span class="icon"><i class="bi bi-check-circle"></i></span>
+                            </label>
+                            <span class="auto-renew-label">تمدید خودکار اشتراک</span>
+                        </div>
+
+                        <button type="button" class="btn btn-outline-danger btn-sm" onclick="openCancelModal()">
+                            <i class="bi bi-x-circle"></i> لغو اشتراک فعلی
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- حالت فاقد اشتراک -->
+            <div id="noSubState" class="no-sub-layout" style="display: none;">
+                <div class="no-sub-icon"><i class="bi bi-shield-slash"></i></div>
+                <div class="no-sub-content">
+                    <h3>شما در حال حاضر هیچ اشتراک فعالی ندارید</h3>
+                    <p>با تهیه یکی از پلن‌های زیر، دسترسی کامل و نامحدود به تمامی فیلم‌ها و قابلیت واچ‌پارتی برای شما فعال می‌شود.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ۲. بخش خرید پلن‌های اشتراک -->
+        <div class="plans-catalog-section">
+            <div class="section-title-wrap">
+                <span class="section-label coral"><i class="bi bi-gem"></i> پلن‌های دسترسی</span>
+                <h2>خرید یا تمدید اشتراک</h2>
+                <p>در صورت داشتن اشتراک فعال، مدت زمان پلن انتخابی به انتهای روزهای باقی‌مانده شما اضافه خواهد شد.</p>
+            </div>
+
+            <div id="plansListGrid" class="plans-selection-grid">
+                <div class="catalog-state-box"><i class="bi bi-hourglass-split"></i> در حال بارگذاری تعرفه‌ها...</div>
+            </div>
+        </div>
+
+        <!-- ۳. بخش تاریخچه اشتراک‌ها -->
+        <div class="sub-history-section">
+            <div class="history-title-wrap">
+                <h3><i class="bi bi-clock-history"></i> سابقه اشتراک‌های شما</h3>
+            </div>
+            <div class="table-responsive">
+                <table class="sub-history-table">
+                    <thead>
+                        <tr>
+                            <th>نام پلن</th>
+                            <th>تاریخ شروع</th>
+                            <th>تاریخ پایان</th>
+                            <th>وضعیت</th>
+                            <th>تمدید خودکار</th>
+                        </tr>
+                    </thead>
+                    <tbody id="subHistoryBody">
+                        <tr>
+                            <td colspan="5" class="table-empty-cell"><i class="bi bi-hourglass-split"></i> بارگذاری تاریخچه...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ==================== مودال تایید خرید اشتراک ==================== -->
+<div id="confirmBuyModal" class="vinora-modal-overlay">
+    <div class="vinora-modal-card">
+        <div class="modal-header">
+            <h3><i class="bi bi-shield-check"></i> تایید خرید اشتراک</h3>
+            <button type="button" class="modal-close-btn" onclick="closeBuyModal()"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div class="modal-body-content">
+            <p>آیا برای خرید اشتراک <strong id="modalPlanDurationMonths" class="highlight-text">۱</strong> ماهه (<span id="modalPlanName">...</span>) اطمینان دارید؟</p>
+            <p class="modal-subtext">مبلغ <strong id="modalPlanPrice" class="highlight-text">...</strong> تومان از موجودی کیف پول شما کسر خواهد شد.</p>
+        </div>
+        <div class="modal-footer-btns">
+            <button type="button" id="btnConfirmBuy" class="btn btn-brand-gradient flex-1" onclick="executePurchase()">
+                <i class="bi bi-check2"></i> خرید اشتراک
+            </button>
+            <button type="button" class="btn btn-outline flex-1" onclick="closeBuyModal()">انصراف</button>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== مودال عدم موجودی کافی ==================== -->
+<div id="insufficientBalanceModal" class="vinora-modal-overlay">
+    <div class="vinora-modal-card">
+        <div class="modal-header">
+            <h3 class="text-danger"><i class="bi bi-exclamation-triangle"></i> موجودی ناکافی</h3>
+            <button type="button" class="modal-close-btn" onclick="closeInsufficientModal()"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div class="modal-body-content">
+            <p>موجودی کیف پول شما برای خرید اشتراک کافی نیست.</p>
+            <p class="modal-subtext">جهت ادامه، ابتدا کیف پول خود را شارژ نمایید.</p>
+        </div>
+        <div class="modal-footer-btns">
+            <a href="/wallet/" class="btn btn-brand-gradient flex-1">
+                <i class="bi bi-wallet2"></i> شارژ کیف پول
+            </a>
+            <button type="button" class="btn btn-outline flex-1" onclick="closeInsufficientModal()">انصراف</button>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== مودال لغو اشتراک ==================== -->
+<div id="cancelSubModal" class="vinora-modal-overlay">
+    <div class="vinora-modal-card">
+        <div class="modal-header">
+            <h3 class="text-danger"><i class="bi bi-x-octagon"></i> لغو اشتراک فعال</h3>
+            <button type="button" class="modal-close-btn" onclick="closeCancelModal()"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div class="modal-body-content">
+            <p>آیا از لغو اشتراک فعال خود اطمینان کامل دارید؟</p>
+            <p class="modal-subtext">با حذف اشتراک، دسترسی شما به فیلم‌های اختصاصی فوراً قطع خواهد شد.</p>
+        </div>
+        <div class="modal-footer-btns">
+            <button type="button" id="btnExecuteCancel" class="btn btn-danger-solid flex-1" onclick="executeCancelSubscription()">
+                <i class="bi bi-trash3"></i> حذف اشتراک
+            </button>
+            <button type="button" class="btn btn-outline flex-1" onclick="closeCancelModal()">انصراف</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    let selectedPlanForPurchase = null;
+    let currentUserWalletBalance = 0;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const token = localStorage.getItem(AUTH_ACCESS_KEY);
+        if (!token) {
+            window.location.href = '/login/';
+            return;
+        }
+
+        fetchUserWalletBalance();
+        loadCurrentSubscription();
+        loadAvailablePlans();
+        loadSubscriptionHistory();
+    });
+
+    async function fetchUserWalletBalance() {
+        const token = localStorage.getItem(AUTH_ACCESS_KEY);
+        try {
+            const res = await fetch('/api/payments/wallet/', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                currentUserWalletBalance = Number(data.balance) || 0;
+            }
+        } catch(e) {}
+    }
+
+    async function loadCurrentSubscription() {
+        const token = localStorage.getItem(AUTH_ACCESS_KEY);
+        try {
+            const res = await fetch('/api/subscriptions/my-subscription/', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+
+            document.getElementById('subLoadingState').style.display = 'none';
+
+            if (res.ok && data.has_active_subscription && data.is_valid) {
+                document.getElementById('noSubState').style.display = 'none';
+                document.getElementById('activeSubState').style.display = 'flex';
+
+                document.getElementById('activeDaysLeft').innerText = data.days_left;
+                document.getElementById('activePlanName').innerText = data.plan ? data.plan.name : 'اشتراک ویژه';
+
+                const sDate = new Date(data.start_date).toLocaleDateString('fa-IR');
+                const eDate = new Date(data.end_date).toLocaleDateString('fa-IR');
+                document.getElementById('activeStartDate').innerText = sDate;
+                document.getElementById('activeEndDate').innerText = eDate;
+
+                document.getElementById('autoRenewToggle').checked = !!data.auto_renew;
+
+                const totalDuration = data.plan && data.plan.duration_days ? data.plan.duration_days : 30;
+                const monthsCount = Math.max(Math.round(totalDuration / 30), 1);
+                document.getElementById('activePlanMonths').innerText = monthsCount.toLocaleString('fa-IR');
+
+                const percent = Math.min(Math.max(data.days_left / totalDuration, 0), 1);
+                setProgressCircle(percent);
+            } else {
+                document.getElementById('activeSubState').style.display = 'none';
+                document.getElementById('noSubState').style.display = 'flex';
+            }
+        } catch (e) {
+            document.getElementById('subLoadingState').innerHTML = '<i class="bi bi-exclamation-triangle"></i> خطا در دریافت اشتراک.';
+        }
+    }
+
+    function setProgressCircle(fraction) {
+        const circle = document.getElementById('progressCircleBar');
+        if (!circle) return;
+        const radius = circle.r.baseVal.value;
+        const circumference = 2 * Math.PI * radius;
+        circle.style.strokeDasharray = `${circumference} ${circumference}`;
+        const offset = circumference - (fraction * circumference);
+        circle.style.strokeDashoffset = offset;
+    }
+
+    async function handleToggleAutoRenew(el) {
+        const token = localStorage.getItem(AUTH_ACCESS_KEY);
+        try {
+            const res = await fetch('/api/subscriptions/toggle-auto-renew/', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                el.checked = !el.checked;
+                alert(data.detail || 'خطا در تغییر تمدید خودکار.');
+            }
+        } catch (e) {
+            el.checked = !el.checked;
+            alert('خطای شبکه در ارتباط با سرور.');
+        }
+    }
+
+    function openCancelModal() {
+        document.getElementById('cancelSubModal').classList.add('active');
+    }
+    function closeCancelModal() {
+        document.getElementById('cancelSubModal').classList.remove('active');
+    }
+
+    async function executeCancelSubscription() {
+        const token = localStorage.getItem(AUTH_ACCESS_KEY);
+        const btn = document.getElementById('btnExecuteCancel');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bi bi-hourglass-split"></i> در حال لغو...';
+
+        try {
+            const res = await fetch('/api/subscriptions/cancel/', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                closeCancelModal();
+                loadCurrentSubscription();
+                loadSubscriptionHistory();
+                checkGlobalAuth();
+            } else {
+                const data = await res.json();
+                alert(data.detail || 'خطا در لغو اشتراک.');
+            }
+        } catch (e) {
+            alert('خطای شبکه.');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-trash3"></i> حذف اشتراک';
+        }
+    }
+
+    async function loadAvailablePlans() {
+        const container = document.getElementById('plansListGrid');
+        try {
+            const res = await fetch('/api/subscriptions/plans/');
+            if (!res.ok) throw new Error();
+            const raw = await res.json();
+            const plans = Array.isArray(raw) ? raw : (raw.results || []);
+
+            if (!plans.length) {
+                container.innerHTML = '<div class="catalog-state-box">پلنی یافت نشد.</div>';
+                return;
+            }
+
+            container.innerHTML = '';
+            plans.forEach(plan => {
+                const isFeatured = plan.duration_days === 180 || (plan.name && plan.name.includes('6'));
+                const card = document.createElement('div');
+                card.className = `plan-item-card ${isFeatured ? 'featured' : ''}`;
+                card.innerHTML = `
+                    <h3>${plan.name}</h3>
+                    <div class="plan-price-row">
+                        <strong>${Number(plan.price).toLocaleString('fa-IR')}</strong>
+                        <span>تومان / ${plan.duration_days} روزه</span>
+                    </div>
+                    <p class="plan-desc-text">${plan.description || 'دسترسی به تمامی امکانات پلتفرم'}</p>
+                    <ul class="plan-feature-bullets">
+                        <li><i class="bi bi-check2"></i> استریم نامحدود 4K و Full HD</li>
+                        <li><i class="bi bi-check2"></i> ایجاد و شرکت در اتاق‌های واچ‌پارتی</li>
+                        <li><i class="bi bi-check2"></i> اضافه شدن مستقیم به انتهای اشتراک فعلی</li>
+                    </ul>
+                    <button class="btn btn-brand-gradient btn-block" onclick="promptBuyPlan(${plan.id}, '${plan.name}', ${plan.price}, ${plan.duration_days})">
+                        خرید این اشتراک
+                    </button>
+                `;
+                container.appendChild(card);
+            });
+        } catch (e) {
+            container.innerHTML = '<div class="catalog-state-box error">خطا در بارگذاری تعرفه‌ها.</div>';
+        }
+    }
+
+    async function promptBuyPlan(id, name, price, durationDays) {
+        selectedPlanForPurchase = { id, name, price, durationDays };
+
+        await fetchUserWalletBalance();
+
+        if (currentUserWalletBalance < Number(price)) {
+            openInsufficientModal();
+            return;
+        }
+
+        const monthsCount = Math.max(Math.round(durationDays / 30), 1);
+        document.getElementById('modalPlanDurationMonths').innerText = monthsCount.toLocaleString('fa-IR');
+        document.getElementById('modalPlanName').innerText = name;
+        document.getElementById('modalPlanPrice').innerText = Number(price).toLocaleString('fa-IR');
+        document.getElementById('confirmBuyModal').classList.add('active');
+    }
+
+    function closeBuyModal() {
+        document.getElementById('confirmBuyModal').classList.remove('active');
+    }
+
+    function openInsufficientModal() {
+        document.getElementById('insufficientBalanceModal').classList.add('active');
+    }
+    function closeInsufficientModal() {
+        document.getElementById('insufficientBalanceModal').classList.remove('active');
+    }
+
+    async function executePurchase() {
+        if (!selectedPlanForPurchase) return;
+        const token = localStorage.getItem(AUTH_ACCESS_KEY);
+        const btn = document.getElementById('btnConfirmBuy');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bi bi-hourglass-split"></i> در حال خرید...';
+
+        try {
+            const res = await fetch('/api/subscriptions/purchase/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ plan_id: selectedPlanForPurchase.id, auto_renew: false })
+            });
+            const data = await res.json();
+
+            closeBuyModal();
+
+            if (res.ok) {
+                alert(`اشتراک با موفقیت ثبت شد و به مدت شما اضافه گردید!`);
+                await fetchUserWalletBalance();
+                loadCurrentSubscription();
+                loadSubscriptionHistory();
+                checkGlobalAuth();
+            } else {
+                if (data.detail && data.detail.includes('موجودی')) {
+                    openInsufficientModal();
+                } else {
+                    alert(data.detail || 'خطا در انجام خرید اشتراک.');
+                }
+            }
+        } catch (e) {
+            closeBuyModal();
+            alert('خطای ارتباط با سرور.');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-check2"></i> خرید اشتراک';
+        }
+    }
+
+    async function loadSubscriptionHistory() {
+        const token = localStorage.getItem(AUTH_ACCESS_KEY);
+        const tbody = document.getElementById('subHistoryBody');
+        try {
+            const res = await fetch('/api/subscriptions/history/', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!res.ok) throw new Error();
+            const raw = await res.json();
+            const list = Array.isArray(raw) ? raw : (raw.results || []);
+
+            if (!list.length) {
+                tbody.innerHTML = '<tr><td colspan="5" class="table-empty-cell"><i class="bi bi-inbox"></i> سابقه‌ای ثبت نشده است.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = '';
+            list.forEach(item => {
+                const tr = document.createElement('tr');
+                const sDate = new Date(item.start_date).toLocaleDateString('fa-IR');
+                const eDate = new Date(item.end_date).toLocaleDateString('fa-IR');
+                
+                let stClass = 'status-pending';
+                let stLabel = 'نامشخص';
+                if (item.status === 'active') { stClass = 'status-success'; stLabel = 'فعال'; }
+                else if (item.status === 'expired') { stClass = 'status-expired'; stLabel = 'منقضی شده'; }
+                else if (item.status === 'cancelled') { stClass = 'status-failed'; stLabel = 'لغو شده'; }
+
+                tr.innerHTML = `
+                    <td><strong>${item.plan ? item.plan.name : '—'}</strong></td>
+                    <td class="text-muted-cell">${sDate}</td>
+                    <td class="text-muted-cell">${eDate}</td>
+                    <td><span class="tx-status-pill ${stClass}">${stLabel}</span></td>
+                    <td>${item.auto_renew ? '<span class="text-teal font-bold">فعال</span>' : '<span class="text-muted">غیرفعال</span>'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } catch (e) {
+            tbody.innerHTML = '<tr><td colspan="5" class="table-empty-cell error">خطا در بارگذاری تاریخچه.</td></tr>';
+        }
+    }
+</script>
+{% endblock %}

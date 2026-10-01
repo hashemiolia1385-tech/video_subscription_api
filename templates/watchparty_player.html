@@ -1,0 +1,567 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}واچ‌پارتی: {{ video.title }} | وینورا{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/watchparty_player.css' %}?v=1.2">
+{% endblock %}
+
+{% block content %}
+<div class="watchparty-wrapper">
+    <div class="watchparty-container">
+        
+        <!-- ستون پخش‌کننده ویدیو -->
+        <div class="player-column">
+            
+            <!-- کادر ابزار اتاق اختصاصی و اشتراک لینک با دوستان -->
+            <div class="watchparty-toolbar-card">
+                <div class="room-share-section">
+                    <span class="toolbar-label"><i class="bi bi-link-45deg"></i> لینک دعوت به اتاق شما:</span>
+                    <div class="share-link-input-wrap">
+                        <input type="text" id="shareRoomLinkInput" readonly class="text-ltr">
+                        <button type="button" class="btn btn-copy-link" onclick="copyRoomLink()" title="کپی لینک دعوت">
+                            <i class="bi bi-clipboard-check"></i> <span id="copyBtnText">کپی</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="room-join-section">
+                    <span class="toolbar-label"><i class="bi bi-box-arrow-in-right"></i> ورود به اتاق دوستان:</span>
+                    <form class="join-room-form" onsubmit="handleJoinFriendRoom(event)">
+                        <input type="text" id="friendRoomInput" placeholder="لینک یا کد اتاق دوستتان را وارد کنید..." class="text-ltr" required>
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            <i class="bi bi-plug-fill"></i> اتصال
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- فریم اختصاصی ویدیو پلیر با کنترل‌های مدرن دو رنگ -->
+            <div class="custom-player-wrapper" id="playerWrapper">
+                <video id="vinoraVideoPlayer" preload="auto" playsinline>
+                    <source src="/stream/{{ video.id }}/" type="video/mp4">
+                    مرورگر شما از تگ ویدیو پشتیبانی نمی‌کند.
+                </video>
+
+                <!-- انیمیشن وسط پلیر -->
+                <div class="center-play-indicator" id="centerPlayIndicator">
+                    <i class="bi bi-play-fill"></i>
+                </div>
+
+                <!-- توئست همگام‌سازی و اعلانات -->
+                <div id="syncIndicator" class="sync-toast-indicator">
+                    <i class="bi bi-broadcast"></i> <span id="syncActionText">همگام‌سازی شد</span>
+                </div>
+
+                <!-- نوار کنترل سفارشی وینورا -->
+                <div class="player-controls-overlay" id="playerControls">
+                    
+                    <!-- نوار پیشرفت زمان فیلم -->
+                    <div class="progress-bar-container" id="progressBarContainer">
+                        <div class="progress-bar-buffered" id="progressBuffered"></div>
+                        <div class="progress-bar-played" id="progressPlayed">
+                            <span class="progress-scrubber-handle"></span>
+                        </div>
+                    </div>
+
+                    <!-- ردیف دکمه‌های اکشن پلیر -->
+                    <div class="controls-actions-row">
+                        
+                        <div class="controls-left-group">
+                            <button type="button" class="ctrl-btn main-play-btn" id="playPauseBtn" title="پخش / توقف">
+                                <i class="bi bi-play-fill" id="playPauseIcon"></i>
+                            </button>
+
+                            <button type="button" class="ctrl-btn" onclick="seekRelative(-10)" title="۱۰ ثانیه عقب">
+                                <i class="bi bi-arrow-counterclockwise"></i>
+                                <span class="btn-sub-num">10</span>
+                            </button>
+
+                            <button type="button" class="ctrl-btn" onclick="seekRelative(10)" title="۱۰ ثانیه جلو">
+                                <i class="bi bi-arrow-clockwise"></i>
+                                <span class="btn-sub-num">10</span>
+                            </button>
+
+                            <div class="volume-control-wrap">
+                                <button type="button" class="ctrl-btn" id="muteBtn" title="صدا">
+                                    <i class="bi bi-volume-up-fill" id="muteIcon"></i>
+                                </button>
+                                <input type="range" id="volumeSlider" class="volume-slider" min="0" max="1" step="0.05" value="1">
+                            </div>
+
+                            <div class="time-display-box">
+                                <span id="currentTimeLabel">00:00</span> / <span id="totalDurationLabel">00:00</span>
+                            </div>
+                        </div>
+
+                        <div class="controls-right-group">
+                            <!-- منوی سرعت پخش -->
+                            <div class="dropdown-control-menu">
+                                <button type="button" class="ctrl-btn menu-trigger-btn" onclick="toggleControlMenu('wpSpeedMenu')">
+                                    <i class="bi bi-speedometer2"></i> <span id="speedValueLabel">1x</span>
+                                </button>
+                                <div class="control-dropdown-panel" id="wpSpeedMenu">
+                                    <button type="button" onclick="setPlaybackSpeed(0.5, this)">0.5x</button>
+                                    <button type="button" onclick="setPlaybackSpeed(0.75, this)">0.75x</button>
+                                    <button type="button" class="active" onclick="setPlaybackSpeed(1, this)">1x</button>
+                                    <button type="button" onclick="setPlaybackSpeed(1.25, this)">1.25x</button>
+                                    <button type="button" onclick="setPlaybackSpeed(1.5, this)">1.5x</button>
+                                    <button type="button" onclick="setPlaybackSpeed(2, this)">2x</button>
+                                </div>
+                            </div>
+
+                            <!-- منوی کیفیت -->
+                            <div class="dropdown-control-menu">
+                                <button type="button" class="ctrl-btn menu-trigger-btn" onclick="toggleControlMenu('wpQualityMenu')">
+                                    <i class="bi bi-gear-fill"></i> <span id="qualityValueLabel">1080p</span>
+                                </button>
+                                <div class="control-dropdown-panel" id="wpQualityMenu">
+                                    <button type="button" onclick="setVideoQuality('4K', this)">4K Ultra HD</button>
+                                    <button type="button" class="active" onclick="setVideoQuality('1080p', this)">1080p Full HD</button>
+                                    <button type="button" onclick="setVideoQuality('720p', this)">720p HD</button>
+                                    <button type="button" onclick="setVideoQuality('480p', this)">480p SD</button>
+                                </div>
+                            </div>
+
+                            <!-- تمام صفحه -->
+                            <button type="button" class="ctrl-btn" id="fullscreenBtn" title="تمام صفحه">
+                                <i class="bi bi-fullscreen" id="fullscreenIcon"></i>
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- مشخصات و وضعیت اتصال -->
+            <div class="video-details-bar">
+                <div class="video-info-main">
+                    <h1>{{ video.title }}</h1>
+                    <div class="video-meta-badges">
+                        <span class="meta-tag"><i class="bi bi-film"></i> {{ video.genre|default:"سینمایی" }}</span>
+                        <span class="meta-tag"><i class="bi bi-door-open"></i> اتاق: <strong id="currentRoomCodeLabel" class="text-teal">...</strong></span>
+                        <span id="socketStatusBadge" class="status-badge connecting">
+                            <span class="status-dot"></span> <span id="socketStatusText">در حال اتصال به سرور...</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="manualTokenBox" class="manual-auth-box">
+                <input type="text" id="jwtTokenInput" placeholder="توکن JWT خود را اینجا وارد کنید..." class="vinora-input text-ltr">
+                <button type="button" id="connectBtn" class="btn btn-primary btn-sm" onclick="initWebSocketConnection()">اتصال به واچ‌پارتی</button>
+            </div>
+        </div>
+
+        <!-- ستون چت‌روم زنده -->
+        <div class="chat-column">
+            <div class="chat-card">
+                <div class="chat-header">
+                    <h3><i class="bi bi-chat-dots-fill"></i> گفتگوی زنده واچ‌پارتی</h3>
+                    <span id="roomUsersBadge" class="room-online-pill"><i class="bi bi-people-fill"></i> متصل</span>
+                </div>
+
+                <div id="chatMessagesBox" class="chat-messages-scroll">
+                    <div class="system-chat-msg">به اتاق واچ‌پارتی خوش آمدید. کنترل‌های پخش بین همه اعضا همگام است.</div>
+                </div>
+
+                <form id="chatForm" class="chat-input-bar" onsubmit="sendChatMessage(event)">
+                    <input type="text" id="chatInput" placeholder="پیام خود را بنویسید..." autocomplete="off">
+                    <button type="submit" id="sendBtn" class="btn btn-send-chat" aria-label="ارسال"><i class="bi bi-send-fill"></i></button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- مودال عدم داشتن اشتراک -->
+<div id="noSubWatchPartyModal" class="vinora-modal-overlay">
+    <div class="vinora-modal-card">
+        <div class="modal-header">
+            <h3 class="text-danger"><i class="bi bi-lock-fill"></i> دسترسی نیازمند اشتراک</h3>
+        </div>
+        <div class="modal-body-content">
+            <p>تماشای همزمان در اتاق‌های واچ‌پارتی، نیازمند اشتراک فعال وینورا است.</p>
+            <p class="modal-subtext">شما اشتراک فعالی ندارید یا اشتراک قبلی شما منقضی شده است. لطفاً جهت استفاده از این قابلیت، اشتراک تهیه فرمایید.</p>
+        </div>
+        <div class="modal-footer-btns">
+            <a href="/subscriptions/" class="btn btn-brand-gradient flex-1">
+                <i class="bi bi-gem"></i> خرید اشتراک
+            </a>
+            <a href="/movie/{{ video.id }}/" class="btn btn-outline flex-1">
+                بازگشت به فیلم
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    const VIDEO_ID = {{ video.id }};
+    const video = document.getElementById('vinoraVideoPlayer');
+    const playerWrapper = document.getElementById('playerWrapper');
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    const playPauseIcon = document.getElementById('playPauseIcon');
+    const centerIndicator = document.getElementById('centerPlayIndicator');
+    const progressContainer = document.getElementById('progressBarContainer');
+    const progressPlayed = document.getElementById('progressPlayed');
+    const progressBuffered = document.getElementById('progressBuffered');
+    const currentTimeLabel = document.getElementById('currentTimeLabel');
+    const totalDurationLabel = document.getElementById('totalDurationLabel');
+    const muteBtn = document.getElementById('muteBtn');
+    const muteIcon = document.getElementById('muteIcon');
+    const volumeSlider = document.getElementById('volumeSlider');
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    const fullscreenIcon = document.getElementById('fullscreenIcon');
+
+    const syncToast = document.getElementById('syncIndicator');
+    const syncActionText = document.getElementById('syncActionText');
+    const messagesBox = document.getElementById('chatMessagesBox');
+    const statusBadge = document.getElementById('socketStatusBadge');
+    const statusText = document.getElementById('socketStatusText');
+
+    let socket = null;
+    let isRemoteAction = false;
+    let currentRoomCode = "";
+    let controlsTimeout;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        const token = localStorage.getItem('vinora_access_token');
+        if (!token) {
+            window.location.href = '/login/';
+            return;
+        }
+
+        const hasValidSub = await checkUserSubscription(token);
+        if (!hasValidSub) {
+            document.getElementById('noSubWatchPartyModal').classList.add('active');
+            if (video) video.pause();
+            return;
+        }
+
+        initRoomCode();
+
+        const tokenInput = document.getElementById('jwtTokenInput');
+        if (tokenInput) tokenInput.value = token;
+        initWebSocketConnection();
+
+        setupWatchPartyPlayerControls();
+    });
+
+    function formatTime(sec) {
+        if (isNaN(sec)) return "00:00";
+        const m = Math.floor(sec / 60);
+        const s = Math.floor(sec % 60);
+        return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    }
+
+    async function checkUserSubscription(token) {
+        try {
+            const res = await fetch('/api/subscriptions/my-subscription/', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!res.ok) return false;
+            const data = await res.json();
+            return (data.has_active_subscription && data.is_valid);
+        } catch(e) {
+            return false;
+        }
+    }
+
+    function generateRandomRoomCode() {
+        return Math.random().toString(36).substring(2, 9);
+    }
+
+    function initRoomCode() {
+        const urlParams = new URLSearchParams(window.location.search);
+        let room = urlParams.get('room');
+
+        if (!room) {
+            room = generateRandomRoomCode();
+            urlParams.set('party', 'true');
+            urlParams.set('room', room);
+            window.history.replaceState({}, '', `${window.location.pathname}?${urlParams.toString()}`);
+        }
+
+        currentRoomCode = room;
+        document.getElementById('currentRoomCodeLabel').innerText = room;
+        document.getElementById('shareRoomLinkInput').value = window.location.href;
+    }
+
+    function copyRoomLink() {
+        const linkInput = document.getElementById('shareRoomLinkInput');
+        linkInput.select();
+        linkInput.setSelectionRange(0, 99999);
+        navigator.clipboard.writeText(linkInput.value);
+
+        const btnText = document.getElementById('copyBtnText');
+        btnText.innerText = "کپی شد!";
+        setTimeout(() => { btnText.innerText = "کپی"; }, 2000);
+    }
+
+    function handleJoinFriendRoom(e) {
+        e.preventDefault();
+        const inputVal = document.getElementById('friendRoomInput').value.trim();
+        if (!inputVal) return;
+
+        let targetRoomCode = inputVal;
+        if (inputVal.includes('room=')) {
+            try {
+                const parsedUrl = new URL(inputVal.startsWith('http') ? inputVal : `http://${inputVal}`);
+                targetRoomCode = parsedUrl.searchParams.get('room') || inputVal;
+            } catch(err) {
+                targetRoomCode = inputVal.split('room=')[1].split('&')[0];
+            }
+        }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        urlParams.set('party', 'true');
+        urlParams.set('room', targetRoomCode);
+        window.location.search = urlParams.toString();
+    }
+
+    function showSyncToast(text) {
+        syncActionText.innerText = text;
+        syncToast.classList.add('show');
+        clearTimeout(window._syncToastTimeout);
+        window._syncToastTimeout = setTimeout(() => {
+            syncToast.classList.remove('show');
+        }, 1800);
+    }
+
+    function initWebSocketConnection() {
+        const token = document.getElementById('jwtTokenInput').value.trim() || localStorage.getItem('vinora_access_token');
+        if (!token) return;
+
+        const wsProtocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+        const socketUrl = `${wsProtocol}${window.location.host}/ws/watch/${VIDEO_ID}/?token=${token}&room=${currentRoomCode}`;
+
+        if (socket) socket.close();
+
+        socket = new WebSocket(socketUrl);
+
+        socket.onopen = () => {
+            statusBadge.className = "status-badge online";
+            statusText.innerText = "آنلاین در اتاق واچ‌پارتی";
+            const tokenBox = document.getElementById('manualTokenBox');
+            if (tokenBox) tokenBox.style.display = "none";
+        };
+
+        socket.onclose = (e) => {
+            statusBadge.className = "status-badge offline";
+            statusText.innerText = e.code === 4001 ? "احراز هویت نامعتبر بود" : "اتصال قطع شد";
+        };
+
+        socket.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            if (data.event_type === "video_sync") {
+                handleRemoteVideoSync(data);
+            } else if (data.event_type === "chat_message") {
+                appendChatMessage(data.sender, data.message, data.timestamp);
+            } else if (data.event_type === "system") {
+                appendSystemMessage(data.message);
+            }
+        };
+    }
+
+    function handleRemoteVideoSync(data) {
+        const action = data.action;
+        const targetTime = parseFloat(data.current_time);
+
+        isRemoteAction = true;
+
+        if (action === "seek") {
+            if (Math.abs(video.currentTime - targetTime) > 0.5) {
+                video.currentTime = targetTime;
+            }
+            showSyncToast(`${data.sender} زمان را به ${formatTime(targetTime)} تغییر داد`);
+        } else if (action === "play") {
+            if (Math.abs(video.currentTime - targetTime) > 0.8) {
+                video.currentTime = targetTime;
+            }
+            video.play().catch(() => {});
+            playPauseIcon.className = "bi bi-pause-fill";
+            showSyncToast(`${data.sender} فیلم را پخش کرد`);
+        } else if (action === "pause") {
+            if (Math.abs(video.currentTime - targetTime) > 0.8) {
+                video.currentTime = targetTime;
+            }
+            video.pause();
+            playPauseIcon.className = "bi bi-play-fill";
+            showSyncToast(`${data.sender} فیلم را متوقف کرد`);
+        }
+
+        setTimeout(() => { isRemoteAction = false; }, 600);
+    }
+
+    function setupWatchPartyPlayerControls() {
+        video.addEventListener('loadedmetadata', () => {
+            totalDurationLabel.innerText = formatTime(video.duration);
+        });
+
+        playPauseBtn.addEventListener('click', togglePlay);
+        video.addEventListener('click', togglePlay);
+
+        video.addEventListener('play', () => {
+            playPauseIcon.className = "bi bi-pause-fill";
+            if (isRemoteAction || !socket || socket.readyState !== WebSocket.OPEN) return;
+            socket.send(JSON.stringify({ action: 'play', current_time: video.currentTime }));
+        });
+
+        video.addEventListener('pause', () => {
+            playPauseIcon.className = "bi bi-play-fill";
+            if (isRemoteAction || !socket || socket.readyState !== WebSocket.OPEN) return;
+            socket.send(JSON.stringify({ action: 'pause', current_time: video.currentTime }));
+        });
+
+        video.addEventListener('timeupdate', () => {
+            const percent = (video.currentTime / video.duration) * 100;
+            progressPlayed.style.width = `${percent}%`;
+            currentTimeLabel.innerText = formatTime(video.currentTime);
+
+            if (video.buffered.length > 0) {
+                const buff = (video.buffered.end(video.buffered.length - 1) / video.duration) * 100;
+                progressBuffered.style.width = `${buff}%`;
+            }
+        });
+
+        let seekTimeout = null;
+        video.addEventListener('seeked', () => {
+            if (isRemoteAction || !socket || socket.readyState !== WebSocket.OPEN) return;
+            clearTimeout(seekTimeout);
+            seekTimeout = setTimeout(() => {
+                socket.send(JSON.stringify({ action: 'seek', current_time: video.currentTime }));
+            }, 150);
+        });
+
+        progressContainer.addEventListener('click', (e) => {
+            const rect = progressContainer.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const percent = clickX / rect.width;
+            video.currentTime = percent * video.duration;
+        });
+
+        volumeSlider.addEventListener('input', (e) => {
+            video.volume = e.target.value;
+            video.muted = (e.target.value === "0");
+            updateVolumeIcon();
+        });
+
+        muteBtn.addEventListener('click', () => {
+            video.muted = !video.muted;
+            updateVolumeIcon();
+        });
+
+        fullscreenBtn.addEventListener('click', toggleFullscreen);
+
+        playerWrapper.addEventListener('mousemove', showControlsBriefly);
+        playerWrapper.addEventListener('mouseleave', () => playerWrapper.classList.remove('show-controls'));
+    }
+
+    function togglePlay() {
+        if (video.paused || video.ended) {
+            video.play();
+        } else {
+            video.pause();
+        }
+    }
+
+    function seekRelative(seconds) {
+        video.currentTime = Math.max(0, Math.min(video.duration, video.currentTime + seconds));
+    }
+
+    function updateVolumeIcon() {
+        if (video.muted || video.volume === 0) {
+            muteIcon.className = "bi bi-volume-mute-fill";
+        } else if (video.volume < 0.5) {
+            muteIcon.className = "bi bi-volume-down-fill";
+        } else {
+            muteIcon.className = "bi bi-volume-up-fill";
+        }
+    }
+
+    function toggleFullscreen() {
+        if (!document.fullscreenElement) {
+            playerWrapper.requestFullscreen().catch(() => {});
+            fullscreenIcon.className = "bi bi-fullscreen-exit";
+        } else {
+            document.exitFullscreen().catch(() => {});
+            fullscreenIcon.className = "bi bi-fullscreen";
+        }
+    }
+
+    function showControlsBriefly() {
+        playerWrapper.classList.add('show-controls');
+        clearTimeout(controlsTimeout);
+        controlsTimeout = setTimeout(() => {
+            if (!video.paused) playerWrapper.classList.remove('show-controls');
+        }, 3000);
+    }
+
+    function toggleControlMenu(menuId) {
+        const menu = document.getElementById(menuId);
+        const isOpen = menu.classList.contains('open');
+        document.querySelectorAll('.control-dropdown-panel').forEach(m => m.classList.remove('open'));
+        if (!isOpen) menu.classList.add('open');
+    }
+
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.dropdown-control-menu')) {
+            document.querySelectorAll('.control-dropdown-panel').forEach(m => m.classList.remove('open'));
+        }
+    });
+
+    function setPlaybackSpeed(speed, btn) {
+        video.playbackRate = speed;
+        document.getElementById('speedValueLabel').innerText = `${speed}x`;
+        btn.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        btn.parentElement.classList.remove('open');
+        showSyncToast(`سرعت پخش شما: ${speed}x`);
+    }
+
+    function setVideoQuality(label, btn) {
+        document.getElementById('qualityValueLabel').innerText = label;
+        btn.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        btn.parentElement.classList.remove('open');
+        showSyncToast(`کیفیت پلیر: ${label}`);
+    }
+
+    function sendChatMessage(e) {
+        e.preventDefault();
+        const input = document.getElementById('chatInput');
+        const text = input.value.trim();
+        if (!text || !socket || socket.readyState !== WebSocket.OPEN) return;
+
+        socket.send(JSON.stringify({ action: 'chat_message', message: text }));
+        input.value = '';
+    }
+
+    function appendChatMessage(sender, text, timestamp) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'chat-bubble';
+        const timeStr = timestamp ? new Date(timestamp).toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' }) : '';
+        msgDiv.innerHTML = `
+            <div class="chat-bubble-header">
+                <strong>${sender}</strong>
+                <small>${timeStr}</small>
+            </div>
+            <div class="chat-bubble-body">${text}</div>
+        `;
+        messagesBox.appendChild(msgDiv);
+        messagesBox.scrollTop = messagesBox.scrollHeight;
+    }
+
+    function appendSystemMessage(msg) {
+        const sysDiv = document.createElement('div');
+        sysDiv.className = 'system-chat-msg';
+        sysDiv.innerText = msg;
+        messagesBox.appendChild(sysDiv);
+        messagesBox.scrollTop = messagesBox.scrollHeight;
+    }
+</script>
+{% endblock %}

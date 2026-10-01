@@ -6,10 +6,37 @@ from subscriptions.serializer import SubscriptionPlanSerializer
 from subscriptions.models import Subscription
 
 
+class ProfileSerializer(serializers.ModelSerializer):
+    photo = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Profile
+        fields = ["biography", "photo", "nationality"]
+
+    def get_photo(self, obj):
+        if not obj.photo:
+            return None
+        photo_str = str(obj.photo)
+        # اصلاح مسیرهای ذخیره‌شده در static/img بدون اضافه شدن پیشوند /media/
+        if "static/img/" in photo_str:
+            idx = photo_str.find("/static/img/")
+            if idx != -1:
+                return photo_str[idx:]
+            return f"/static/img/{photo_str.split('/')[-1]}"
+        if photo_str.startswith("http://") or photo_str.startswith("https://"):
+            return photo_str
+        request = self.context.get("request")
+        if request and hasattr(obj.photo, "url"):
+            return request.build_absolute_uri(obj.photo.url)
+        return getattr(obj.photo, "url", photo_str)
+
+
 class CastCrewSerializer(serializers.ModelSerializer):
+    profile = ProfileSerializer(read_only=True)
+
     class Meta:
         model = CastCrew
-        fields = ["id", "full_name", "birth_date"]
+        fields = ["id", "full_name", "birth_date", "profile"]
 
 
 class VideoCreditSerializer(serializers.ModelSerializer):

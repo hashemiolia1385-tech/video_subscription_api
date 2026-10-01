@@ -1,0 +1,240 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ video.title }} | وینورا{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/movie_detail.css' %}?v=1.2">
+{% endblock %}
+
+{% block content %}
+<div class="movie-page-wrapper">
+    <!-- بخش بنر هیرو سینمایی با بک‌گراند بلور شده پوستر فیلم -->
+    <div class="movie-backdrop" id="movieBackdrop" style="background-image: url('{{ video.poster_url }}');">
+        <div class="backdrop-gradient-overlay"></div>
+    </div>
+
+    <div class="movie-content-container">
+        <!-- کارت مشخصات اصلی فیلم -->
+        <div class="movie-main-card">
+            <!-- ستون پوستر -->
+            <div class="poster-column">
+                <div class="poster-frame">
+                    <img id="moviePoster" src="{{ video.poster_url }}" alt="{{ video.title }}" onerror="this.onerror=null;this.src='/static/img/Fight_Club.jpg';">
+                    <div class="plan-tag-badge" id="planBadge">
+                        {% if video.required_plan %}
+                            <span class="badge-premium"><i class="bi bi-gem"></i> نیازمند اشتراک</span>
+                        {% else %}
+                            <span class="badge-free"><i class="bi bi-unlock-fill"></i> رایگان</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- ستون اطلاعات و اکشن‌ها -->
+            <div class="info-column">
+                <div class="meta-tags-row">
+                    <span class="genre-pill"><i class="bi bi-film"></i> {{ video.genre|default:"سینمایی" }}</span>
+                    {% if video.release_date %}
+                        <span class="release-pill"><i class="bi bi-calendar-event"></i> {{ video.release_date|date:"Y" }}</span>
+                    {% endif %}
+                    <span class="duration-pill" id="durationPill"><i class="bi bi-clock"></i> {{ video.duration }} ثانیه</span>
+                    <span class="rating-pill" id="ratingPill"><i class="bi bi-star-fill"></i> —</span>
+                </div>
+
+                <h1 class="movie-heading-title">{{ video.title }}</h1>
+
+                <div class="movie-summary-box">
+                    <h3 class="section-subheading"><i class="bi bi-text-paragraph"></i> خلاصه داستان</h3>
+                    <p class="movie-description-text">
+                        {{ video.description|default:"توضیحاتی برای این فیلم ثبت نشده است." }}
+                    </p>
+                </div>
+
+                <!-- دکمه‌های تماشای فیلم و واچ‌پارتی -->
+                <div class="action-buttons-group">
+                    <button type="button" class="btn btn-watch-now" onclick="handleWatchMovie()">
+                        <i class="bi bi-play-circle-fill"></i> تماشای فیلم
+                    </button>
+                    <button type="button" class="btn btn-watch-party" onclick="handleWatchParty()">
+                        <i class="bi bi-people-fill"></i> واچ‌پارتی
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- بخش بازیگران و عوامل سازنده -->
+        <div class="cast-crew-section">
+            <div class="cast-header">
+                <h2><i class="bi bi-person-video2"></i> بازیگران و عوامل سازنده</h2>
+                <span class="cast-counter-badge" id="castCount">در حال واکشی...</span>
+            </div>
+
+            <div class="cast-slider-track" id="castSliderTrack">
+                <div class="loading-state-box">
+                    <i class="bi bi-hourglass-split"></i> در حال بارگذاری لیست عوامل...
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- مودال نیاز به خرید اشتراک -->
+<div id="movieSubRequiredModal" class="vinora-modal-overlay">
+    <div class="vinora-modal-card">
+        <div class="modal-header">
+            <h3 class="text-danger"><i class="bi bi-lock-fill"></i> دسترسی اشتراکی</h3>
+            <button type="button" class="modal-close-btn" onclick="closeSubModal()"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div class="modal-body-content">
+            <p id="subModalMessage">برای تماشای این عنوان یا استفاده از قابلیت واچ‌پارتی، نیازمند اشتراک فعال هستید.</p>
+            <p class="modal-subtext">با تهیه اشتراک، به تمام محتواها با کیفیت 4K و اتاق‌های تماشای گروهی دسترسی نامحدود خواهید داشت.</p>
+        </div>
+        <div class="modal-footer-btns">
+            <a href="/subscriptions/" class="btn btn-brand-gradient flex-1">
+                <i class="bi bi-gem"></i> مشاهده و خرید اشتراک
+            </a>
+            <button type="button" class="btn btn-outline flex-1" onclick="closeSubModal()">انصراف</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    const VIDEO_ID = {{ video.id }};
+    const IS_REQUIRED_PLAN = {% if video.required_plan %}true{% else %}false{% endif %};
+    const DEFAULT_ACTOR_PHOTO = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&q=80";
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadMovieDetailsData();
+        formatDurationDisplay();
+    });
+
+    function formatDurationDisplay() {
+        const durationSec = {{ video.duration|default:0 }};
+        if (durationSec > 0) {
+            const hrs = Math.floor(durationSec / 3600);
+            const mins = Math.floor((durationSec % 3600) / 60);
+            let text = "";
+            if (hrs > 0) text += `${hrs} ساعت `;
+            if (mins > 0) text += `${mins} دقیقه`;
+            if (!text) text = `${durationSec} ثانیه`;
+            document.getElementById('durationPill').innerHTML = `<i class="bi bi-clock"></i> ${text}`;
+        }
+    }
+
+    async function loadMovieDetailsData() {
+        const token = localStorage.getItem('vinora_access_token');
+        const headers = {};
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+
+        try {
+            const res = await fetch(`/api/videos/${VIDEO_ID}/`, { headers });
+            if (!res.ok) throw new Error();
+            const data = await res.json();
+
+            if (data.average_rating && Number(data.average_rating) > 0) {
+                document.getElementById('ratingPill').innerHTML = `<i class="bi bi-star-fill"></i> ${Number(data.average_rating).toFixed(1)}`;
+            }
+
+            renderCreditsList(data.credits || []);
+        } catch (e) {
+            document.getElementById('castSliderTrack').innerHTML = '<div class="loading-state-box error"><i class="bi bi-exclamation-triangle"></i> خطا در دریافت مشخصات عوامل.</div>';
+        }
+    }
+
+    function renderCreditsList(credits) {
+        const track = document.getElementById('castSliderTrack');
+        const countBadge = document.getElementById('castCount');
+
+        if (!credits || credits.length === 0) {
+            track.innerHTML = '<div class="loading-state-box">اطلاعاتی از بازیگران و عوامل این فیلم ثبت نشده است.</div>';
+            countBadge.innerText = '۰ نفر';
+            return;
+        }
+
+        countBadge.innerText = `${credits.length.toLocaleString('fa-IR')} نفر`;
+        track.innerHTML = '';
+
+        credits.forEach(item => {
+            const person = item.person || {};
+            const card = document.createElement('a');
+            card.className = 'cast-card';
+            card.href = `/person/${person.id}/`;
+
+            const roleTitle = item.role_type_display || (item.role_type === 'director' ? 'کارگردان' : 'بازیگر');
+            const characterText = item.character_name ? `در نقش ${item.character_name}` : roleTitle;
+            const photoUrl = person.profile && person.profile.photo ? person.profile.photo : DEFAULT_ACTOR_PHOTO;
+
+            card.innerHTML = `
+                <div class="cast-avatar-box">
+                    <img src="${photoUrl}" alt="${person.full_name || 'هنرمند'}" onerror="this.onerror=null;this.src='${DEFAULT_ACTOR_PHOTO}';">
+                </div>
+                <div class="cast-meta-info">
+                    <h4 class="cast-name">${person.full_name || 'نامشخص'}</h4>
+                    <span class="cast-role">${characterText}</span>
+                </div>
+            `;
+            track.appendChild(card);
+        });
+    }
+
+    async function checkSubscriptionStatus(token) {
+        try {
+            const res = await fetch('/api/subscriptions/my-subscription/', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!res.ok) return false;
+            const data = await res.json();
+            return (data.has_active_subscription && data.is_valid);
+        } catch(e) {
+            return false;
+        }
+    }
+
+    async function handleWatchMovie() {
+        const token = localStorage.getItem('vinora_access_token');
+        if (!token) {
+            window.location.href = '/login/';
+            return;
+        }
+
+        // اگر فیلم اشتراکی است، اشتراک بررسی می‌شود
+        if (IS_REQUIRED_PLAN) {
+            const hasSub = await checkSubscriptionStatus(token);
+            if (!hasSub) {
+                document.getElementById('subModalMessage').innerText = 'این فیلم اشتراکی است و برای تماشای آن نیاز به اشتراک فعال دارید.';
+                document.getElementById('movieSubRequiredModal').classList.add('active');
+                return;
+            }
+        }
+
+        // هدایت به پلیر عادی
+        window.location.href = `/player/${VIDEO_ID}/`;
+    }
+
+    async function handleWatchParty() {
+        const token = localStorage.getItem('vinora_access_token');
+        if (!token) {
+            window.location.href = '/login/';
+            return;
+        }
+
+        // واچ‌پارتی در هر حالت (حتی برای فیلم رایگان) نیازمند اشتراک است
+        const hasSub = await checkSubscriptionStatus(token);
+        if (!hasSub) {
+            document.getElementById('subModalMessage').innerText = 'استفاده از قابلیت واچ‌پارتی (چه فیلم‌های رایگان و چه اشتراکی) نیازمند اشتراک فعال وینورا است.';
+            document.getElementById('movieSubRequiredModal').classList.add('active');
+            return;
+        }
+
+        // هدایت به پلیر واچ‌پارتی
+        window.location.href = `/player/${VIDEO_ID}/?party=true`;
+    }
+
+    function closeSubModal() {
+        document.getElementById('movieSubRequiredModal').classList.remove('active');
+    }
+</script>
+{% endblock %}

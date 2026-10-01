@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}پروفایل {{ person.full_name }} | وینورا{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/person_detail.css' %}?v=1.0">
+{% endblock %}
+
+{% block content %}
+<div class="person-page-wrapper">
+    <!-- پس‌زمینه بلورین گرادینتی -->
+    <div class="person-backdrop" style="background-image: url('{{ profile.photo|default:'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=600&q=80' }}');">
+        <div class="backdrop-gradient-overlay"></div>
+    </div>
+
+    <div class="person-container">
+        
+        <!-- کارت مشخصات فردی و هدر هنرمند -->
+        <div class="person-hero-card">
+            <div class="person-photo-wrap">
+                <img src="{{ profile.photo|default:'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=300&q=80' }}" alt="{{ person.full_name }}" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=300&q=80';">
+            </div>
+
+            <div class="person-info-wrap">
+                <div class="person-badge-row">
+                    <span class="artist-badge"><i class="bi bi-star-fill"></i> هنرمند رسمی وینورا</span>
+                </div>
+
+                <h1 class="person-name-heading">{{ person.full_name }}</h1>
+
+                <!-- اطلاعات آماری و مشخصات در قالب گرید ۳تایی مدرن -->
+                <div class="person-stats-row">
+                    <div class="person-stat-item">
+                        <span class="stat-lbl"><i class="bi bi-geo-alt-fill text-coral"></i> ملیت:</span>
+                        <strong class="stat-val">{{ profile.nationality|default:"بین‌المللی" }}</strong>
+                    </div>
+
+                    <div class="person-stat-item">
+                        <span class="stat-lbl"><i class="bi bi-calendar-event text-teal"></i> تاریخ تولد:</span>
+                        <strong class="stat-val text-ltr">{{ person.birth_date|date:"Y/m/d"|default:"نامشخص" }}</strong>
+                    </div>
+
+                    <div class="person-stat-item">
+                        <span class="stat-lbl"><i class="bi bi-hourglass-split text-gold"></i> سن:</span>
+                        <strong class="stat-val">{% if age %}{{ age }} سال{% else %}نامشخص{% endif %}</strong>
+                    </div>
+                </div>
+
+                <!-- باکس بیوگرافی -->
+                <div class="person-bio-box">
+                    <h3><i class="bi bi-journal-text text-teal"></i> درباره هنرمند</h3>
+                    <p class="bio-text">
+                        {{ profile.biography|default:"بیوگرافی رسمی برای این هنرمند ثبت نشده است." }}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- فیلم‌شناسی و کارنامه هنری -->
+        <div class="filmography-section">
+            <div class="filmography-header">
+                <h2><i class="bi bi-film text-coral"></i> فیلم‌ها و همکاری‌های سینمایی</h2>
+                <span class="film-count-pill">{{ credits|length }} اثر</span>
+            </div>
+
+            {% if credits %}
+                <div class="filmography-grid">
+                    {% for credit in credits %}
+                        <a href="{% url 'movie-detail' credit.video.id %}" class="movie-card">
+                            <div class="movie-poster-wrap">
+                                <img src="{{ credit.video.poster_url }}" alt="{{ credit.video.title }}" loading="lazy" onerror="this.onerror=null;this.src='/static/img/Fight_Club.jpg';">
+                                <div class="poster-overlay"></div>
+                                {% if credit.video.required_plan %}
+                                    <span class="plan-badge premium"><i class="bi bi-gem"></i> اشتراکی</span>
+                                {% else %}
+                                    <span class="plan-badge free"><i class="bi bi-unlock-fill"></i> رایگان</span>
+                                {% endif %}
+                            </div>
+                            <div class="movie-details">
+                                <h3 class="movie-title" title="{{ credit.video.title }}">{{ credit.video.title }}</h3>
+                                <div class="movie-meta-bottom">
+                                    <span class="movie-role-tag">
+                                        <i class="bi bi-person-badge"></i>
+                                        {% if credit.role_type == 'director' %}
+                                            کارگردان
+                                        {% else %}
+                                            {% if credit.character_name %}
+                                                {{ credit.character_name }}
+                                            {% else %}
+                                                بازیگر
+                                            {% endif %}
+                                        {% endif %}
+                                    </span>
+                                    <span class="movie-watch-hint"><i class="bi bi-arrow-left"></i></span>
+                                </div>
+                            </div>
+                        </a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-films-box">
+                    <i class="bi bi-camera-reels"></i>
+                    <p>فیلمی برای این هنرمند در وینورا ثبت نشده است.</p>
+                </div>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+{% endblock %}

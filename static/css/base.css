@@ -1,13 +1,12 @@
 /* =========================================================
    VINORA — BASE / GLOBAL DESIGN SYSTEM
-   Shared by every page (loaded from base.html)
+   Fully Responsive for All Devices (Mobile, Tablet, Desktop)
    ========================================================= */
 
 @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800;900&display=swap');
 
 :root {
-
-    /* Brand — pulled straight from the logo */
+    /* Brand Colors */
     --vinora-teal: #15b4b2;
     --vinora-teal-dark: #109c9a;
     --vinora-teal-light: #5fd6d4;
@@ -15,7 +14,7 @@
     --vinora-coral-dark: #f07a68;
     --vinora-coral-light: #ffb8ad;
 
-    /* Surfaces (dark, cinematic default) */
+    /* Surfaces (Dark Default) */
     --bg: #070a12;
     --bg-elevated: #0b0f1a;
     --surface: #10141f;
@@ -49,13 +48,7 @@
     color-scheme: dark;
 }
 
-
-/* =========================================================
-   LIGHT THEME — same tokens, flipped surfaces
-   ========================================================= */
-
 :root[data-theme="light"] {
-
     --bg: #f4f7f8;
     --bg-elevated: #ffffff;
     --surface: #ffffff;
@@ -71,12 +64,13 @@
     color-scheme: light;
 }
 
-
 /* =========================================================
-   RESET
+   RESET & FOUNDATIONS
    ========================================================= */
 
-* {
+*,
+*::before,
+*::after {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
@@ -85,6 +79,7 @@
 html {
     scroll-behavior: smooth;
     scroll-padding-top: calc(var(--header-h) + 16px);
+    overflow-x: hidden;
 }
 
 body {
@@ -94,28 +89,55 @@ body {
     flex-direction: column;
     background-color: var(--bg);
     color: var(--text);
-    font-family: "Vazirmatn", system-ui, "Segoe UI", Tahoma, Arial, sans-serif;
+    font-family: "Vazirmatn", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     line-height: 1.75;
     direction: rtl;
     overflow-x: hidden;
     transition: background-color 300ms ease, color 300ms ease;
 }
 
-a { color: inherit; text-decoration: none; }
-button, input, select { font: inherit; color: inherit; }
-img { display: block; max-width: 100%; }
-ul { list-style: none; }
+a {
+    color: inherit;
+    text-decoration: none;
+}
 
-::-webkit-scrollbar { width: 9px; height: 9px; }
-::-webkit-scrollbar-track { background: var(--bg); }
-::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: var(--vinora-teal); }
+button,
+input,
+select,
+textarea {
+    font: inherit;
+    color: inherit;
+}
 
+img,
+video {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
 
-/* =========================================================
-   SITE-WIDE BACKGROUND HALO — teal + coral glow
-   (fixed, sits behind every page, dims nicely in light mode)
-   ========================================================= */
+ul {
+    list-style: none;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border-strong);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--vinora-teal);
+}
 
 body::before {
     content: "";
@@ -140,7 +162,6 @@ body::before {
     opacity: 1;
 }
 
-
 /* =========================================================
    BUTTONS
    ========================================================= */
@@ -149,7 +170,7 @@ body::before {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 8px;
     border: none;
     cursor: pointer;
     font-weight: 700;
@@ -157,9 +178,16 @@ body::before {
     border-radius: var(--radius-sm);
     transition: transform var(--transition), box-shadow var(--transition), background-color var(--transition), border-color var(--transition), color var(--transition);
     white-space: nowrap;
+    text-align: center;
 }
 
-.btn:hover { transform: translateY(-2px); }
+.btn:hover {
+    transform: translateY(-2px);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
 
 .btn-primary {
     color: #04201f;
@@ -168,7 +196,9 @@ body::before {
     padding: 0.75rem 1.6rem;
 }
 
-.btn-primary:hover { box-shadow: 0 14px 34px var(--glow-teal); }
+.btn-primary:hover {
+    box-shadow: 0 14px 34px var(--glow-teal);
+}
 
 .btn-accent {
     color: #2a0f0a;
@@ -184,14 +214,90 @@ body::before {
     padding: 0.72rem 1.5rem;
 }
 
-.btn-outline:hover { border-color: var(--vinora-teal); color: var(--vinora-teal); }
+.btn-outline:hover {
+    border-color: var(--vinora-teal);
+    color: var(--vinora-teal);
+}
 
-.btn-sm { padding: 0.5rem 1.1rem; font-size: 0.85rem; }
-.btn-block { width: 100%; }
+.btn-sm {
+    padding: 0.45rem 1rem;
+    font-size: 0.85rem;
+}
 
+.btn-block {
+    width: 100%;
+}
+
+.btn-brand-gradient {
+    background: linear-gradient(135deg, var(--vinora-teal), var(--vinora-coral));
+    color: #06110f;
+    font-weight: 800;
+    padding: 0.85rem 1.8rem;
+    border-radius: var(--radius-sm);
+    box-shadow: 0 10px 28px rgba(21, 180, 178, 0.35);
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: transform var(--transition), box-shadow var(--transition);
+}
+
+.btn-brand-gradient:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 34px rgba(250, 150, 135, 0.45);
+}
+
+.btn-outline-danger {
+    background: rgba(239, 68, 68, 0.08);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: var(--danger);
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    padding: 6px 14px;
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+.btn-outline-danger:hover {
+    background: var(--danger);
+    color: #fff;
+}
+
+.btn-danger-solid {
+    background: var(--danger);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.btn-danger-solid:hover {
+    background: #dc2626;
+}
+
+.flex-1 {
+    flex: 1;
+}
+
+.text-teal {
+    color: var(--vinora-teal);
+}
+
+.text-danger {
+    color: var(--danger) !important;
+}
+
+.highlight-text {
+    color: var(--vinora-teal);
+}
 
 /* =========================================================
-   NAVBAR
+   NAVBAR & HEADER (RESPONSIVE CENTERING)
    ========================================================= */
 
 .vinora-navbar {
@@ -202,35 +308,46 @@ body::before {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 24px;
-    padding: 0 clamp(16px, 4vw, 48px);
-    background: linear-gradient(to bottom, rgba(7, 10, 18, 0.92), rgba(7, 10, 18, 0.78));
+    gap: 16px;
+    padding: 0 clamp(12px, 3vw, 40px);
+    background: linear-gradient(to bottom, rgba(7, 10, 18, 0.94), rgba(7, 10, 18, 0.82));
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border-bottom: 1px solid var(--border);
-    transition: background-color 300ms ease, border-color 300ms ease;
+    transition: height var(--transition), background-color 300ms ease;
 }
 
 :root[data-theme="light"] .vinora-navbar {
     background: linear-gradient(to bottom, rgba(244, 247, 248, 0.94), rgba(244, 247, 248, 0.82));
 }
 
-.navbar-start { display: flex; align-items: center; gap: 44px; min-width: 0; }
+.navbar-start {
+    display: flex;
+    align-items: center;
+    gap: clamp(16px, 3vw, 40px);
+    min-width: 0;
+}
 
-.brand-wrapper { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.brand-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
 
-/* لوگو با سایز واقعی و مناسب در هدر */
 .vinora-brand-logo {
-    height: 46px;
+    height: clamp(34px, 4vw, 46px);
     width: auto;
     display: block;
     transition: transform var(--transition);
 }
 
-.brand-wrapper:hover .vinora-brand-logo { transform: scale(1.04); }
+.brand-wrapper:hover .vinora-brand-logo {
+    transform: scale(1.04);
+}
 
 .brand-wordmark {
-    font-size: 1.28rem;
+    font-size: clamp(1.1rem, 2vw, 1.35rem);
     font-weight: 900;
     letter-spacing: 0.5px;
     background: linear-gradient(90deg, var(--vinora-teal), var(--vinora-coral));
@@ -242,29 +359,42 @@ body::before {
 .nav-links {
     display: flex;
     align-items: center;
-    gap: 30px;
+    gap: clamp(14px, 1.8vw, 28px);
 }
 
 .nav-links a {
     position: relative;
     display: flex;
     align-items: center;
-    gap: 7px;
-    font-size: 0.95rem;
+    gap: 6px;
+    font-size: 0.92rem;
     font-weight: 600;
     color: var(--muted);
     transition: color var(--transition);
+    white-space: nowrap;
 }
 
-.nav-links a:hover { color: var(--text); }
+.nav-links a:hover {
+    color: var(--text);
+}
 
-.nav-links a.active { color: var(--vinora-teal); }
+.nav-links a.active {
+    color: var(--vinora-teal);
+}
 
-.nav-links a i { font-size: 1rem; color: var(--vinora-teal); opacity: 0.9; }
+.nav-links a i {
+    font-size: 0.95rem;
+    color: #fa9687;
+    opacity: 0.9;
+}
 
-.navbar-end { display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
+.navbar-end {
+    display: flex;
+    align-items: center;
+    gap: clamp(8px, 1.5vw, 16px);
+    flex-shrink: 0;
+}
 
-/* سوییچ تم */
 .theme-toggle {
     display: inline-flex;
     align-items: center;
@@ -274,17 +404,23 @@ body::before {
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid var(--border);
     border-radius: var(--radius-pill);
-    padding: 6px 10px;
+    padding: 5px 8px;
 }
 
-.theme-toggle input { display: none; }
+.theme-toggle input {
+    display: none;
+}
 
-.theme-toggle .icon { font-size: 0.95rem; line-height: 1; color: var(--muted); }
+.theme-toggle .icon {
+    font-size: 0.88rem;
+    line-height: 1;
+    color: var(--muted);
+}
 
 .theme-toggle .track {
     position: relative;
-    width: 38px;
-    height: 20px;
+    width: 36px;
+    height: 18px;
     border-radius: var(--radius-pill);
     background: rgba(255, 255, 255, 0.12);
     transition: var(--transition);
@@ -294,19 +430,71 @@ body::before {
     position: absolute;
     top: 2px;
     right: 2px;
-    width: 16px;
-    height: 16px;
+    width: 14px;
+    height: 14px;
     border-radius: 50%;
     background: var(--vinora-teal);
     transition: var(--transition);
 }
 
-.theme-toggle input:checked ~ .track .thumb { right: 20px; background: var(--vinora-coral); }
+.theme-toggle input:checked~.track .thumb {
+    right: 20px;
+    background: var(--vinora-coral);
+}
 
-.auth-btns-group { display: flex; align-items: center; gap: 10px; }
+.auth-btns-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
 
-/* منوی کاربر لاگین‌شده */
-.user-menu-container { position: relative; display: none; align-items: center; }
+.user-nav-profile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.user-header-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    line-height: 1.25;
+}
+
+.user-header-username {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--text);
+    max-width: 120px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.user-header-sub-badge {
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: var(--radius-pill);
+    margin-top: 2px;
+    white-space: nowrap;
+}
+
+.user-header-sub-badge.active-sub {
+    background: rgba(34, 197, 94, 0.15);
+    color: var(--success);
+    border: 1px solid rgba(34, 197, 94, 0.35);
+}
+
+.user-header-sub-badge.no-sub {
+    background: rgba(250, 150, 135, 0.15);
+    color: var(--vinora-coral);
+    border: 1px solid rgba(250, 150, 135, 0.35);
+}
+
+.user-menu-container {
+    position: relative;
+}
 
 .user-avatar-btn {
     background: none;
@@ -315,80 +503,154 @@ body::before {
     cursor: pointer;
     padding: 2px;
     display: flex;
+    align-items: center;
+    justify-content: center;
     transition: var(--transition);
 }
 
-.user-avatar-btn:hover { border-color: var(--vinora-teal); box-shadow: 0 0 12px var(--glow-teal); }
+.user-avatar-btn:hover {
+    border-color: var(--vinora-teal);
+    box-shadow: 0 0 12px var(--glow-teal);
+}
 
-.user-avatar-img { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; background: var(--surface); }
+.user-avatar-img {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--surface);
+}
 
 .user-dropdown-menu {
     position: absolute;
-    top: 54px;
+    top: 48px;
     left: 0;
-    width: 220px;
+    width: 200px;
     background: var(--surface-card);
-    border: 1px solid var(--border);
+    border: 1px solid var(--border-strong);
     border-radius: var(--radius-md);
-    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.55);
     display: none;
     flex-direction: column;
     padding: 8px 0;
-    z-index: 1100;
+    z-index: 1200;
 }
 
-.user-dropdown-menu.active { display: flex; animation: fadeInDown 0.18s ease; }
+.user-menu-container:hover .user-dropdown-menu,
+.user-dropdown-menu.active {
+    display: flex;
+    animation: fadeInDown 0.18s ease;
+}
 
-@keyframes fadeInDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
 
-.user-dropdown-menu a, .user-dropdown-menu button {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.user-dropdown-menu a,
+.user-dropdown-menu button {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 10px 16px;
-    font-size: 0.88rem;
+    padding: 9px 16px;
+    font-size: 0.86rem;
     text-align: right;
     width: 100%;
     background: none;
     border: none;
+    color: var(--text);
     cursor: pointer;
     transition: var(--transition);
 }
 
-.user-dropdown-menu a:hover, .user-dropdown-menu button:hover { background: rgba(21, 180, 178, 0.1); color: var(--vinora-teal); }
-.user-dropdown-menu hr { margin: 6px 0; border: none; border-top: 1px solid var(--border); }
+.user-dropdown-menu a:hover,
+.user-dropdown-menu button:hover {
+    background: rgba(21, 180, 178, 0.1);
+    color: var(--vinora-teal);
+}
 
-/* منوی موبایل */
+.user-dropdown-menu hr {
+    margin: 6px 0;
+    border: none;
+    border-top: 1px solid var(--border);
+}
+
+.btn-dropdown-logout {
+    color: var(--danger) !important;
+}
+
 .nav-burger {
     display: none;
-    width: 42px;
-    height: 42px;
+    width: 40px;
+    height: 40px;
     border-radius: var(--radius-sm);
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid var(--border);
     align-items: center;
     justify-content: center;
-    font-size: 1.2rem;
+    font-size: 1.3rem;
     cursor: pointer;
+    transition: var(--transition);
 }
+
+.nav-burger:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--vinora-teal);
+    color: var(--vinora-teal);
+}
+
+/* =========================================================
+   MOBILE DROPDOWN PANEL (پنل کشویی همبرگری)
+   ========================================================= */
 
 .mobile-nav-panel {
     position: fixed;
     inset: var(--header-h) 0 0 0;
     background: var(--bg-elevated);
     z-index: 999;
-    padding: 24px;
+    padding: 20px 24px 60px;
     display: none;
     flex-direction: column;
     gap: 6px;
     overflow-y: auto;
+    border-top: 1px solid var(--border);
 }
 
-.mobile-nav-panel.open { display: flex; }
+.mobile-nav-panel.open {
+    display: flex;
+    animation: fadeInDown 0.22s ease-out;
+}
+
+.mobile-nav-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 10px;
+    margin-bottom: 8px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+}
+
+.mobile-theme-label {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
 
 .mobile-nav-panel a {
-    padding: 14px 10px;
-    font-size: 1.05rem;
+    padding: 12px 10px;
+    font-size: 1rem;
     font-weight: 700;
     border-bottom: 1px solid var(--border);
     display: flex;
@@ -396,23 +658,79 @@ body::before {
     gap: 10px;
 }
 
-.mobile-nav-panel a i { color: var(--vinora-teal); }
+.mobile-nav-panel a i {
+    color: #fa9687;
+    font-size: 1.1rem;
+}
 
-.mobile-nav-actions { display: flex; gap: 10px; margin-top: 20px; }
+.mobile-nav-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 20px;
+}
 
+.mobile-nav-divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 16px 0;
+}
+
+.mobile-user-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.mobile-user-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 10px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: var(--radius-sm);
+    margin-bottom: 8px;
+}
+
+.mobile-user-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--vinora-teal);
+}
+
+.mobile-user-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.mobile-user-meta strong {
+    color: var(--text);
+    font-size: 0.95rem;
+}
+
+.mobile-logout-btn {
+    margin-top: 12px;
+    padding: 10px;
+}
 
 /* =========================================================
-   MAIN + FOOTER
+   MAIN & FOOTER
    ========================================================= */
 
-main.vinora-content { flex: 1; width: 100%; }
+main.vinora-content {
+    flex: 1;
+    width: 100%;
+}
 
 .vinora-footer {
     position: relative;
     z-index: 1;
     background: var(--surface);
     border-top: 1px solid var(--border);
-    padding: 3rem clamp(16px, 4vw, 48px) 1.6rem;
+    padding: 2.8rem clamp(16px, 4vw, 48px) 1.6rem;
     margin-top: auto;
 }
 
@@ -426,24 +744,65 @@ main.vinora-content { flex: 1; width: 100%; }
     border-bottom: 1px solid var(--border);
 }
 
-.footer-brand { display: flex; flex-direction: column; gap: 12px; }
-.footer-brand img { height: 34px; }
-.footer-brand p { color: var(--muted); font-size: 0.85rem; max-width: 320px; line-height: 1.9; }
+.footer-brand {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
 
-.footer-social { display: flex; gap: 10px; margin-top: 6px; }
+.footer-brand img {
+    height: 32px;
+}
+
+.footer-brand p {
+    color: var(--muted);
+    font-size: 0.85rem;
+    max-width: 320px;
+    line-height: 1.9;
+}
+
+.footer-social {
+    display: flex;
+    gap: 10px;
+    margin-top: 6px;
+}
+
 .footer-social a {
-    width: 36px; height: 36px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid var(--border);
     color: var(--muted);
     transition: var(--transition);
 }
-.footer-social a:hover { color: #fff; background: var(--vinora-teal); border-color: var(--vinora-teal); }
 
-.footer-col h4 { font-size: 0.95rem; margin-bottom: 14px; color: var(--text); }
-.footer-col a { display: block; color: var(--muted); font-size: 0.86rem; margin-bottom: 10px; transition: var(--transition); }
-.footer-col a:hover { color: var(--vinora-teal); }
+.footer-social a:hover {
+    color: #fff;
+    background: var(--vinora-teal);
+    border-color: var(--vinora-teal);
+}
+
+.footer-col h4 {
+    font-size: 0.95rem;
+    margin-bottom: 14px;
+    color: var(--text);
+}
+
+.footer-col a {
+    display: block;
+    color: var(--muted);
+    font-size: 0.86rem;
+    margin-bottom: 10px;
+    transition: var(--transition);
+}
+
+.footer-col a:hover {
+    color: var(--vinora-teal);
+}
 
 .footer-bottom {
     max-width: var(--container);
@@ -451,18 +810,21 @@ main.vinora-content { flex: 1; width: 100%; }
     padding-top: 1.4rem;
     display: flex;
     justify-content: space-between;
+    align-items: center;
     flex-wrap: wrap;
     gap: 10px;
     color: var(--muted);
     font-size: 0.78rem;
 }
 
-
 /* =========================================================
-   SHARED UTILITIES (used across pages)
+   SHARED UTILITIES & GLASS MODAL
    ========================================================= */
 
-.section-container { width: min(calc(100% - 32px), var(--container)); margin-inline: auto; }
+.section-container {
+    width: min(calc(100% - 28px), var(--container));
+    margin-inline: auto;
+}
 
 .section-label {
     display: inline-flex;
@@ -473,7 +835,7 @@ main.vinora-content { flex: 1; width: 100%; }
     color: var(--vinora-teal);
     background: rgba(21, 180, 178, 0.1);
     border: 1px solid rgba(21, 180, 178, 0.3);
-    padding: 6px 16px;
+    padding: 5px 14px;
     border-radius: var(--radius-pill);
 }
 
@@ -483,25 +845,206 @@ main.vinora-content { flex: 1; width: 100%; }
     border-color: rgba(250, 150, 135, 0.35);
 }
 
+/* Glassmorphism Modal */
+.vinora-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    background: rgba(7, 10, 18, 0.78);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+}
+
+.vinora-modal-overlay.active {
+    display: flex;
+    animation: modalFadeIn 0.2s ease-out;
+}
+
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.vinora-modal-card {
+    background: var(--surface-card);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-lg);
+    width: 100%;
+    max-width: 500px;
+    padding: clamp(1.4rem, 4vw, 2.4rem);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65);
+    position: relative;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.4rem;
+}
+
+.modal-header h3 {
+    font-size: clamp(1.05rem, 2.5vw, 1.25rem);
+    font-weight: 800;
+    color: var(--text);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.modal-close-btn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: color var(--transition);
+}
+
+.modal-close-btn:hover {
+    color: var(--danger);
+}
+
+.modal-body-content {
+    margin: 1rem 0 1.6rem;
+    font-size: 0.95rem;
+    line-height: 1.8;
+}
+
+.modal-subtext {
+    color: var(--muted);
+    font-size: 0.84rem;
+    margin-top: 6px;
+}
+
+.modal-footer-btns {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
 
 /* =========================================================
-   RESPONSIVE
+   RESPONSIVE BREAKPOINTS (هدر وسط‌چین با منوی همبرگری)
    ========================================================= */
 
 @media (max-width: 1080px) {
-    .nav-links { display: none; }
-    .nav-burger { display: flex; }
-    .navbar-start { gap: 20px; }
+    .nav-links {
+        display: none;
+    }
+
+    .nav-burger {
+        display: flex;
+    }
+
+    .footer-inner {
+        grid-template-columns: 1.2fr 1fr 1fr;
+    }
 }
 
-@media (max-width: 720px) {
-    :root { --header-h: 72px; }
-    .vinora-brand-logo { height: 38px; }
-    .footer-inner { grid-template-columns: 1fr 1fr; }
-    .theme-toggle .icon:first-child { display: none; }
+/* از عرض ۷۶۸ پیکسل به پایین: دکمه‌های ورود، ثبت‌نام و تم وارد منوی همبرگری شده و لوگو دقیقاً در وسط قرار می‌گیرد */
+@media (max-width: 768px) {
+    :root {
+        --header-h: 68px;
+    }
+
+    .vinora-navbar {
+        position: relative;
+        justify-content: space-between;
+        padding: 0 16px;
+    }
+
+    /* پنهان کردن دکمه‌های دسکتاپ در نوار هدر */
+    .desktop-theme-toggle,
+    .desktop-auth-group,
+    .desktop-user-profile {
+        display: none !important;
+    }
+
+    /* لوگو دقیقاً در وسط هدر */
+    .navbar-start {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        margin: 0;
+        gap: 0;
+    }
+
+    .brand-wrapper {
+        margin: 0 auto;
+    }
+
+    /* دکمه منوی همبرگری در سمت راست نوار */
+    .navbar-end {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .nav-burger {
+        display: flex;
+        margin-inline-start: 0;
+    }
+
+    .footer-inner {
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+    }
+
+    .footer-brand {
+        grid-column: 1 / -1;
+    }
+
+    .footer-bottom {
+        flex-direction: column;
+        text-align: center;
+        gap: 8px;
+    }
+
+    .modal-footer-btns {
+        flex-direction: column;
+    }
+
+    .modal-footer-btns .btn {
+        width: 100%;
+    }
 }
 
 @media (max-width: 480px) {
-    .footer-inner { grid-template-columns: 1fr; }
-    .footer-bottom { flex-direction: column; }
+    :root {
+        --header-h: 64px;
+    }
+
+    .brand-wordmark {
+        font-size: 1.15rem;
+    }
+
+    .vinora-brand-logo {
+        height: 32px;
+    }
+
+    .footer-inner {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+
+    .footer-social {
+        justify-content: center;
+    }
+
+    .footer-brand p {
+        margin: 0 auto;
+    }
 }

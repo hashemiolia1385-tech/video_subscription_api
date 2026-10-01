@@ -1,0 +1,356 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}ورود به وینورا | VINORA{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/auth.css' %}?v=1.0">
+{% endblock %}
+
+{% block content %}
+<div class="auth-page-wrapper">
+    <div class="auth-card-modern">
+        
+        <div class="auth-brand-logo">
+            <img src="{% static 'img/logo.svg' %}" alt="VINORA" style="height: 38px;">
+            <span class="brand-wordmark" style="font-size: 1.4rem; font-weight: 900;">VINORA</span>
+        </div>
+
+        <div id="generalNotice" class="notice-box"></div>
+
+        <!-- ۱. حالت ورود با رمز عبور -->
+        <div id="stepPasswordLogin">
+            <h1 class="auth-title">ورود به حساب کاربری</h1>
+            <p class="auth-subtitle">اطلاعات حساب خود را جهت تماشای فیلم‌ها وارد کنید.</p>
+
+            <form onsubmit="handlePasswordLogin(event)">
+                <div class="form-group-custom">
+                    <label class="field-label" for="loginIdentifier">ایمیل، شماره موبایل یا نام کاربری</label>
+                    <input type="text" id="loginIdentifier" class="vinora-input" placeholder="0912... یا email@... یا username" required dir="ltr">
+                </div>
+
+                <div class="form-group-custom">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                        <label class="field-label" for="loginPassword" style="margin-bottom: 0;">رمز عبور</label>
+                        <button type="button" class="btn-link-action" onclick="showForgotPassword()">فراموشی رمز عبور؟</button>
+                    </div>
+                    <input type="password" id="loginPassword" class="vinora-input" placeholder="••••••••" required dir="ltr">
+                </div>
+
+                <button type="submit" id="btnPasswordLogin" class="btn btn-primary btn-block" style="padding: 0.8rem;">
+                    ورود به وینورا
+                </button>
+            </form>
+
+            <div class="divider">یا</div>
+
+            <button type="button" class="btn btn-outline btn-block" style="padding: 0.75rem;" onclick="handleQuickOtpStart()">
+                <i class="bi bi-lightning-charge-fill" style="color: var(--vinora-coral);"></i> ورود سریع با کد یک‌بار مصرف
+            </button>
+
+            <div class="auth-footer-text">
+                هنوز حساب کاربری ندارید؟ <a href="/register/">ثبت‌نام کنید</a>
+            </div>
+        </div>
+
+        <!-- ۲. حالت ورود با کد یک‌بار مصرف OTP -->
+        <div id="stepOtpVerify" style="display: none;">
+            <h1 class="auth-title">ورود با کد تایید</h1>
+            <p id="otpSubtitleText" class="auth-subtitle"></p>
+
+            <form onsubmit="handleQuickOtpVerify(event)">
+                <div class="form-group-custom">
+                    <input type="text" id="quickOtpInput" class="vinora-input otp-code-field" maxlength="6" placeholder="------" required dir="ltr" autocomplete="one-time-code">
+                </div>
+
+                <button type="submit" id="btnVerifyQuickOtp" class="btn btn-primary btn-block" style="padding: 0.8rem; margin-bottom: 0.75rem;">
+                    تایید و ورود
+                </button>
+
+                <button type="button" class="btn btn-outline btn-block" style="padding: 0.7rem;" onclick="resetToPasswordLogin()">
+                    ورود با رمز عبور
+                </button>
+
+                <div class="timer-row">
+                    <span id="otpTimerBox">امکان ارسال مجدد: <strong id="otpTimerCountdown" style="color: var(--text);">02:00</strong></span>
+                    <button type="button" id="btnResendQuickOtp" class="btn-link-action" style="display: none;" onclick="handleQuickOtpStart()">
+                        ارسال دوباره کد
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- ۳. حالت بازیابی رمز عبور -->
+        <div id="stepResetPassword" style="display: none;">
+            <h1 class="auth-title">بازیابی رمز عبور</h1>
+            <p id="resetSubtitleText" class="auth-subtitle">کد تایید ارسال‌شده و رمز عبور جدید را وارد کنید.</p>
+
+            <form onsubmit="handleResetPasswordSubmit(event)">
+                <div class="form-group-custom">
+                    <label class="field-label">کد ۶ رقمی دریافتی</label>
+                    <input type="text" id="resetOtpCode" class="vinora-input otp-code-field" maxlength="6" placeholder="------" required dir="ltr">
+                </div>
+
+                <div class="form-group-custom">
+                    <label class="field-label" for="newPassword">رمز عبور جدید</label>
+                    <input type="password" id="newPassword" class="vinora-input" placeholder="••••••••" required dir="ltr">
+                </div>
+
+                <div class="form-group-custom">
+                    <label class="field-label" for="newPasswordConfirm">تکرار رمز عبور جدید</label>
+                    <input type="password" id="newPasswordConfirm" class="vinora-input" placeholder="••••••••" required dir="ltr">
+                </div>
+
+                <button type="submit" id="btnSubmitReset" class="btn btn-primary btn-block" style="padding: 0.8rem; margin-bottom: 0.75rem;">
+                    تغییر رمز عبور و ورود
+                </button>
+
+                <button type="button" class="btn btn-outline btn-block" style="padding: 0.7rem;" onclick="resetToPasswordLogin()">
+                    انصراف و بازگشت
+                </button>
+            </form>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    let otpCountdownInterval = null;
+    let activeIdentifier = '';
+
+    function showNotice(msg, isSuccess = false) {
+        const el = document.getElementById('generalNotice');
+        el.className = `notice-box ${isSuccess ? 'success' : 'error'}`;
+        el.innerText = msg;
+        el.style.display = 'block';
+    }
+
+    function hideNotice() {
+        document.getElementById('generalNotice').style.display = 'none';
+    }
+
+    async function handlePasswordLogin(e) {
+        e.preventDefault();
+        hideNotice();
+
+        const identifier = document.getElementById('loginIdentifier').value.trim();
+        const password = document.getElementById('loginPassword').value;
+        const btn = document.getElementById('btnPasswordLogin');
+
+        btn.disabled = true;
+        btn.innerText = 'در حال بررسی...';
+
+        try {
+            const res = await fetch('/api/accounts/login/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ identifier, password })
+            });
+            const data = await res.json();
+
+            if (res.ok && data.access) {
+                localStorage.setItem(AUTH_ACCESS_KEY, data.access);
+                localStorage.setItem(AUTH_REFRESH_KEY, data.refresh);
+                showNotice('ورود موفقیت‌آمیز بود! در حال انتقال...', true);
+                setTimeout(() => window.location.href = '/', 600);
+            } else {
+                showNotice(data.detail || 'مشخصات ورود اشتباه است.');
+            }
+        } catch (err) {
+            showNotice('عدم برقراری ارتباط با سرور.');
+        } finally {
+            btn.disabled = false;
+            btn.innerText = 'ورود به وینورا';
+        }
+    }
+
+    async function handleQuickOtpStart() {
+        hideNotice();
+        const identifier = document.getElementById('loginIdentifier').value.trim();
+
+        if (!identifier) {
+            showNotice('لطفاً ابتدا ایمیل یا شماره موبایل خود را در کادر بالا وارد کنید.');
+            document.getElementById('loginIdentifier').focus();
+            return;
+        }
+
+        activeIdentifier = identifier;
+
+        try {
+            const res = await fetch('/api/accounts/quick-otp/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ identifier: activeIdentifier })
+            });
+            const data = await res.json();
+
+            if (res.ok) {
+                const isEmail = data.channel === 'email';
+                document.getElementById('otpSubtitleText').innerText = 
+                    isEmail ? `کد ورود به ایمیل ${activeIdentifier} ارسال شد.` : `کد ورود به شماره ${activeIdentifier} پیامک شد.`;
+
+                document.getElementById('stepPasswordLogin').style.display = 'none';
+                document.getElementById('stepOtpVerify').style.display = 'block';
+                document.getElementById('quickOtpInput').value = '';
+                document.getElementById('quickOtpInput').focus();
+
+                showNotice('کد تایید ارسال شد (لاگ ترمینال سرور را بررسی کنید).', true);
+                startOtpTimer(120);
+            } else {
+                const errMsg = data.identifier ? data.identifier[0] : (data.detail || 'کاربری با این مشخصات یافت نشد.');
+                showNotice(errMsg);
+            }
+        } catch (err) {
+            showNotice('خطا در ارسال درخواست کد تایید.');
+        }
+    }
+
+    async function handleQuickOtpVerify(e) {
+        e.preventDefault();
+        hideNotice();
+
+        const code = document.getElementById('quickOtpInput').value.trim();
+        const btn = document.getElementById('btnVerifyQuickOtp');
+
+        if (code.length !== 6) {
+            showNotice('کد تایید باید ۶ رقم باشد.');
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerText = 'در حال اعتبارسنجی...';
+
+        try {
+            const res = await fetch('/api/accounts/otp/verify/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ identifier: activeIdentifier, code: code })
+            });
+            const data = await res.json();
+
+            if (res.ok && data.access) {
+                localStorage.setItem(AUTH_ACCESS_KEY, data.access);
+                localStorage.setItem(AUTH_REFRESH_KEY, data.refresh);
+                showNotice('ورود با موفقیت انجام شد! در حال انتقال...', true);
+                setTimeout(() => window.location.href = '/', 600);
+            } else {
+                showNotice(data.detail || 'کد وارد شده اشتباه یا منقضی است.');
+            }
+        } catch(err) {
+            showNotice('خطا در ارتباط با سرور.');
+        } finally {
+            btn.disabled = false;
+            btn.innerText = 'تایید و ورود';
+        }
+    }
+
+    async function showForgotPassword() {
+        hideNotice();
+        const identifier = document.getElementById('loginIdentifier').value.trim();
+        if (!identifier) {
+            showNotice('برای بازیابی رمز، ابتدا ایمیل یا شماره موبایل خود را وارد نمایید.');
+            document.getElementById('loginIdentifier').focus();
+            return;
+        }
+
+        activeIdentifier = identifier;
+
+        try {
+            const res = await fetch('/api/accounts/password-reset/request/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ identifier: activeIdentifier })
+            });
+            const data = await res.json();
+
+            if (res.ok) {
+                document.getElementById('resetSubtitleText').innerText = data.detail;
+                document.getElementById('stepPasswordLogin').style.display = 'none';
+                document.getElementById('stepResetPassword').style.display = 'block';
+                showNotice('کد بازیابی ارسال شد (لاگ ترمینال را ببینید).', true);
+            } else {
+                showNotice(data.identifier ? data.identifier[0] : (data.detail || 'کاربر با این مشخصات یافت نشد.'));
+            }
+        } catch(err) {
+            showNotice('خطا در ارتباط با سرور.');
+        }
+    }
+
+    async function handleResetPasswordSubmit(e) {
+        e.preventDefault();
+        hideNotice();
+
+        const code = document.getElementById('resetOtpCode').value.trim();
+        const newPwd = document.getElementById('newPassword').value;
+        const confirmPwd = document.getElementById('newPasswordConfirm').value;
+        const btn = document.getElementById('btnSubmitReset');
+
+        if (newPwd !== confirmPwd) {
+            showNotice('رمز عبور جدید و تکرار آن یکسان نیستند.');
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerText = 'در حال ثبت رمز جدید...';
+
+        try {
+            const res = await fetch('/api/accounts/password-reset/confirm/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    identifier: activeIdentifier,
+                    code: code,
+                    new_password: newPwd,
+                    new_password_confirm: confirmPwd
+                })
+            });
+            const data = await res.json();
+
+            if (res.ok) {
+                showNotice('رمز عبور شما با موفقیت تغییر کرد! اکنون وارد شوید.', true);
+                setTimeout(() => resetToPasswordLogin(), 1500);
+            } else {
+                showNotice(data.detail || data.new_password?.[0] || 'کد اعتبارسنجی نامعتبر است.');
+            }
+        } catch(err) {
+            showNotice('خطا در سرور.');
+        } finally {
+            btn.disabled = false;
+            btn.innerText = 'تغییر رمز عبور و ورود';
+        }
+    }
+
+    function startOtpTimer(duration) {
+        clearInterval(otpCountdownInterval);
+        let remain = duration;
+        const countdownEl = document.getElementById('otpTimerCountdown');
+        const boxEl = document.getElementById('otpTimerBox');
+        const resendBtn = document.getElementById('btnResendQuickOtp');
+
+        boxEl.style.display = 'inline';
+        resendBtn.style.display = 'none';
+
+        otpCountdownInterval = setInterval(() => {
+            const m = Math.floor(remain / 60);
+            const s = remain % 60;
+            countdownEl.innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+
+            if (remain <= 0) {
+                clearInterval(otpCountdownInterval);
+                boxEl.style.display = 'none';
+                resendBtn.style.display = 'inline';
+            }
+            remain--;
+        }, 1000);
+    }
+
+    function resetToPasswordLogin() {
+        clearInterval(otpCountdownInterval);
+        document.getElementById('stepOtpVerify').style.display = 'none';
+        document.getElementById('stepResetPassword').style.display = 'none';
+        document.getElementById('stepPasswordLogin').style.display = 'block';
+    }
+</script>
+{% endblock %}

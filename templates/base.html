@@ -8,10 +8,9 @@
     <title>{% block title %}وینورا | دنیای بی‌پایان فیلم و سریال{% endblock %}</title>
     <meta name="description" content="{% block meta_description %}وینورا؛ پلتفرم استریم فیلم و سریال با واچ‌پارتی ریل‌تایم و کیفیت 4K.{% endblock %}">
 
-    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <link rel="stylesheet" href="{% static 'css/base.css' %}?v=1.6">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 
-    <!-- جلوگیری از پرش رنگی هنگام لود صفحه (تم قبلی کاربر را فورا اعمال می‌کند) -->
     <script>
         (function () {
             var saved = localStorage.getItem('vinora_theme');
@@ -25,7 +24,6 @@
 
     <!-- ============================== هدر وینورا ============================== -->
     <header class="vinora-navbar">
-
         <div class="navbar-start">
             <a href="/#home" class="brand-wrapper">
                 <img src="{% static 'img/logo.svg' %}" alt="وینورا (VINORA)" class="vinora-brand-logo">
@@ -37,62 +35,98 @@
                     <li><a href="/#home"{% if request.path == '/' %} class="active"{% endif %}><i class="bi bi-house-door"></i> خانه</a></li>
                     <li><a href="{% url 'vinora-movies' %}"{% if 'movies' in request.path %} class="active"{% endif %}><i class="bi bi-film"></i> فیلم‌ها و سریال‌ها</a></li>
                     <li><a href="/#featuresSection"><i class="bi bi-grid"></i> امکانات</a></li>
-                    <li><a href="/#plansSection"><i class="bi bi-gem"></i> اشتراک‌ها</a></li>
+                    <li><a href="javascript:void(0)" onclick="handleSubscriptionsNavClick()" id="navPlansLink"><i class="bi bi-gem"></i> اشتراک‌ها</a></li>
                     <li><a href="/#faqSection"><i class="bi bi-question-circle"></i> سوالات متداول</a></li>
                 </ul>
             </nav>
         </div>
 
         <div class="navbar-end">
-
-            <!-- سوییچ تم روشن/تاریک -->
-            <label class="theme-toggle" title="تغییر حالت نمایش">
+            <!-- سوییچ تم دسکتاپ -->
+            <label class="theme-toggle desktop-theme-toggle" title="تغییر حالت نمایش">
                 <span class="icon">☾</span>
                 <input type="checkbox" id="themeSwitch" onchange="vinoraToggleTheme(this)">
                 <span class="track"><span class="thumb"></span></span>
                 <span class="icon">☀</span>
             </label>
 
-            <!-- دکمه‌های مهمان -->
-            <div id="authActions" class="auth-btns-group">
+            <!-- ۱. حالت مهمان دسکتاپ: ورود و ثبت‌نام -->
+            <div id="authActions" class="auth-btns-group desktop-auth-group">
                 <a href="/login/" class="btn btn-outline btn-sm">ورود</a>
                 <a href="/register/" class="btn btn-primary btn-sm">ثبت‌نام</a>
             </div>
 
-            <!-- منوی کاربر لاگین‌شده -->
-            <div id="userMenuWrapper" class="user-menu-container">
-                <button class="user-avatar-btn" onclick="toggleUserDropdown(event)">
-                    <img id="headerUserAvatar" class="user-avatar-img" src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&q=80" alt="پروفایل">
-                </button>
-                <div id="userDropdown" class="user-dropdown-menu">
-                    <div style="padding: 8px 16px; font-weight: 700; font-size: 0.85rem;" id="dropdownUserName">کاربر وینورا</div>
-                    <hr>
-                    <a href="/profile/"><i class="bi bi-person"></i> پروفایل</a>
-                    <a href="/wallet/"><i class="bi bi-wallet2"></i> کیف پول</a>
-                    <a href="/my-subscription/"><i class="bi bi-shield-check"></i> وضعیت اشتراک</a>
-                    <a href="/favorites/"><i class="bi bi-heart"></i> فیلم‌های مورد علاقه</a>
-                    <a href="/history/"><i class="bi bi-clock-history"></i> تاریخچه تماشا</a>
-                    <hr>
-                    <button onclick="logoutUser()" style="color: var(--danger);"><i class="bi bi-box-arrow-right"></i> خروج از حساب</button>
+            <!-- ۲. حالت کاربر واردشده دسکتاپ: آواتار و مشخصات -->
+            <div id="userMenuWrapper" class="user-nav-profile desktop-user-profile" style="display: none;">
+                <div class="user-header-info">
+                    <span id="headerUsername" class="user-header-username">کاربر وینورا</span>
+                    <span id="headerSubBadge" class="user-header-sub-badge no-sub">فاقد اشتراک</span>
+                </div>
+
+                <div class="user-menu-container">
+                    <button class="user-avatar-btn" onclick="toggleUserDropdown(event)" aria-label="منوی کاربری">
+                        <img id="headerUserAvatar" class="user-avatar-img" src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&q=80" alt="پروفایل">
+                    </button>
+                    <div id="userDropdown" class="user-dropdown-menu">
+                        <a href="/profile/"><i class="bi bi-person"></i> پروفایل</a>
+                        <a href="/wallet/"><i class="bi bi-wallet2"></i> کیف پول</a>
+                        <a href="/subscriptions/"><i class="bi bi-shield-check"></i> وضعیت اشتراک</a>
+                        <a href="/history/"><i class="bi bi-clock-history"></i> تاریخچه تماشا</a>
+                        <hr>
+                        <button onclick="logoutUser()" class="btn-dropdown-logout"><i class="bi bi-box-arrow-right"></i> خروج</button>
+                    </div>
                 </div>
             </div>
 
+            <!-- دکمه منوی همبرگری موبایل -->
             <button class="nav-burger" onclick="toggleMobileNav()" aria-label="منو">
                 <i class="bi bi-list"></i>
             </button>
         </div>
     </header>
 
-    <!-- منوی موبایل -->
+    <!-- ============================== پنل دراپ‌داون موبایل ============================== -->
     <div class="mobile-nav-panel" id="mobileNavPanel">
+        <!-- ردیف کنترل تم در بالای دراپ‌داون موبایل -->
+        <div class="mobile-nav-top-row">
+            <span class="mobile-theme-label"><i class="bi bi-palette2"></i> حالت نمایش:</span>
+            <label class="theme-toggle" title="تغییر تم">
+                <span class="icon">☾</span>
+                <input type="checkbox" id="mobileThemeSwitch" onchange="vinoraToggleTheme(this)">
+                <span class="track"><span class="thumb"></span></span>
+                <span class="icon">☀</span>
+            </label>
+        </div>
+
+        <!-- لینک‌های صفحات اصلی -->
         <a href="/#home" onclick="toggleMobileNav()"><i class="bi bi-house-door"></i> خانه</a>
         <a href="{% url 'vinora-movies' %}" onclick="toggleMobileNav()"><i class="bi bi-film"></i> فیلم‌ها و سریال‌ها</a>
         <a href="/#featuresSection" onclick="toggleMobileNav()"><i class="bi bi-grid"></i> امکانات</a>
-        <a href="/#plansSection" onclick="toggleMobileNav()"><i class="bi bi-gem"></i> اشتراک‌ها</a>
+        <a href="javascript:void(0)" onclick="toggleMobileNav(); handleSubscriptionsNavClick();"><i class="bi bi-gem"></i> اشتراک‌ها</a>
         <a href="/#faqSection" onclick="toggleMobileNav()"><i class="bi bi-question-circle"></i> سوالات متداول</a>
+
+        <!-- حالت کاربر لاگین‌شده در موبایل -->
+        <div id="mobileUserSection" class="mobile-user-section" style="display: none;">
+            <hr class="mobile-nav-divider">
+            <div class="mobile-user-card">
+                <img id="mobileUserAvatar" src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&q=80" alt="پروفایل" class="mobile-user-avatar">
+                <div class="mobile-user-meta">
+                    <strong id="mobileUsername">کاربر وینورا</strong>
+                    <span id="mobileSubBadge" class="user-header-sub-badge no-sub">فاقد اشتراک</span>
+                </div>
+            </div>
+            <a href="/profile/" onclick="toggleMobileNav()"><i class="bi bi-person"></i> پروفایل من</a>
+            <a href="/wallet/" onclick="toggleMobileNav()"><i class="bi bi-wallet2"></i> کیف پول</a>
+            <a href="/subscriptions/" onclick="toggleMobileNav()"><i class="bi bi-shield-check"></i> وضعیت اشتراک</a>
+            <button type="button" class="btn btn-outline-danger btn-block mobile-logout-btn" onclick="logoutUser()">
+                <i class="bi bi-box-arrow-right"></i> خروج از حساب
+            </button>
+        </div>
+
+        <!-- حالت مهمان در موبایل (دکمه‌های ورود و ثبت‌نام داخل دراپ‌داون) -->
         <div class="mobile-nav-actions" id="mobileAuthActions">
-            <a href="/login/" class="btn btn-outline btn-block">ورود</a>
-            <a href="/register/" class="btn btn-primary btn-block">ثبت‌نام</a>
+            <a href="/login/" class="btn btn-outline btn-block"><i class="bi bi-box-arrow-in-left"></i> ورود به حساب</a>
+            <a href="/register/" class="btn btn-primary btn-block"><i class="bi bi-person-plus-fill"></i> ثبت‌نام در وینورا</a>
         </div>
     </div>
 
@@ -141,32 +175,74 @@
         const AUTH_ACCESS_KEY = 'vinora_access_token';
         const AUTH_REFRESH_KEY = 'vinora_refresh_token';
 
-        function checkGlobalAuth() {
+        async function checkGlobalAuth() {
             const token = localStorage.getItem(AUTH_ACCESS_KEY);
             const authActions = document.getElementById('authActions');
             const userMenuWrapper = document.getElementById('userMenuWrapper');
             const mobileAuthActions = document.getElementById('mobileAuthActions');
-            const dropdownUserName = document.getElementById('dropdownUserName');
+            const mobileUserSection = document.getElementById('mobileUserSection');
+            const headerUsername = document.getElementById('headerUsername');
+            const headerSubBadge = document.getElementById('headerSubBadge');
+            const headerUserAvatar = document.getElementById('headerUserAvatar');
+            const mobileUsername = document.getElementById('mobileUsername');
+            const mobileSubBadge = document.getElementById('mobileSubBadge');
+            const mobileUserAvatar = document.getElementById('mobileUserAvatar');
 
             if (!token) {
                 if (authActions) authActions.style.display = 'flex';
                 if (userMenuWrapper) userMenuWrapper.style.display = 'none';
                 if (mobileAuthActions) mobileAuthActions.style.display = 'flex';
+                if (mobileUserSection) mobileUserSection.style.display = 'none';
                 return;
             }
 
             if (authActions) authActions.style.display = 'none';
             if (userMenuWrapper) userMenuWrapper.style.display = 'flex';
             if (mobileAuthActions) mobileAuthActions.style.display = 'none';
+            if (mobileUserSection) mobileUserSection.style.display = 'block';
 
-            fetch('/api/accounts/me/', { headers: { 'Authorization': `Bearer ${token}` } })
-                .then(r => { if (r.status === 401) { logoutUser(); return null; } return r.json(); })
-                .then(data => {
-                    if (data && dropdownUserName) {
-                        dropdownUserName.innerText = (data.first_name ? `${data.first_name} ${data.last_name}` : data.username) || data.phone_number;
+            try {
+                const res = await fetch('/api/accounts/me/', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (res.status === 401) {
+                    logoutUser();
+                    return;
+                }
+
+                const user = await res.json();
+                if (user) {
+                    const displayName = (user.first_name ? `${user.first_name} ${user.last_name}` : user.username) || user.phone_number;
+                    if (headerUsername) headerUsername.innerText = displayName;
+                    if (mobileUsername) mobileUsername.innerText = displayName;
+                    if (headerUserAvatar && user.avatar_url) headerUserAvatar.src = user.avatar_url;
+                    if (mobileUserAvatar && user.avatar_url) mobileUserAvatar.src = user.avatar_url;
+                }
+
+                const subRes = await fetch('/api/subscriptions/my-subscription/', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (subRes.ok) {
+                    const subData = await subRes.json();
+                    const text = (subData.has_active_subscription && subData.is_valid)
+                        ? `اشتراک فعال (${subData.days_left} روز)`
+                        : 'فاقد اشتراک';
+                    const badgeClass = (subData.has_active_subscription && subData.is_valid)
+                        ? 'user-header-sub-badge active-sub'
+                        : 'user-header-sub-badge no-sub';
+
+                    if (headerSubBadge) {
+                        headerSubBadge.innerText = text;
+                        headerSubBadge.className = badgeClass;
                     }
-                })
-                .catch(() => {});
+                    if (mobileSubBadge) {
+                        mobileSubBadge.innerText = text;
+                        mobileSubBadge.className = badgeClass;
+                    }
+                }
+            } catch (e) {}
         }
 
         function toggleUserDropdown(e) {
@@ -204,13 +280,30 @@
             const theme = el.checked ? 'light' : 'dark';
             document.documentElement.setAttribute('data-theme', theme);
             localStorage.setItem('vinora_theme', theme);
+
+            const desktopSwitch = document.getElementById('themeSwitch');
+            const mobileSwitch = document.getElementById('mobileThemeSwitch');
+            if (desktopSwitch) desktopSwitch.checked = el.checked;
+            if (mobileSwitch) mobileSwitch.checked = el.checked;
+        }
+
+        function handleSubscriptionsNavClick() {
+            const token = localStorage.getItem(AUTH_ACCESS_KEY);
+            if (!token) {
+                window.location.href = '/login/';
+            } else {
+                window.location.href = '/subscriptions/';
+            }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
             checkGlobalAuth();
-            if (document.documentElement.getAttribute('data-theme') === 'light') {
-                document.getElementById('themeSwitch').checked = true;
-            }
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const isLight = (currentTheme === 'light');
+            const desktopSwitch = document.getElementById('themeSwitch');
+            const mobileSwitch = document.getElementById('mobileThemeSwitch');
+            if (desktopSwitch) desktopSwitch.checked = isLight;
+            if (mobileSwitch) mobileSwitch.checked = isLight;
         });
     </script>
     {% block extra_scripts %}{% endblock %}

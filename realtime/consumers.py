@@ -118,7 +118,7 @@ class VideoCommentConsumer(AsyncWebsocketConsumer):
 
 class WatchPartyConsumer(AsyncWebsocketConsumer):
     """
-    کانسومر اتاق گفتگوی زنده واچ‌پارتی
+    کانسومر اتاق گفتگوی زنده و همگام‌سازی پخش واچ‌پارتی با پشتیبانی از اتاق‌های مجزا
     """
 
     async def connect(self):
@@ -129,7 +129,16 @@ class WatchPartyConsumer(AsyncWebsocketConsumer):
             return
 
         self.video_id = self.scope["url_route"]["kwargs"]["video_id"]
-        self.room_group_name = f"watch_party_{self.video_id}"
+
+        # دریافت شناسه اتاق اختصاصی از Query String
+        from urllib.parse import parse_qs
+
+        query_string = self.scope.get("query_string", b"").decode("utf-8")
+        query_params = parse_qs(query_string)
+        self.room_code = query_params.get("room", ["default"])[0]
+
+        # نام گروه یکتا برای هر اتاق در هر فیلم
+        self.room_group_name = f"watch_party_{self.video_id}_{self.room_code}"
 
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
@@ -191,6 +200,7 @@ class WatchPartyConsumer(AsyncWebsocketConsumer):
                     "timestamp": timezone.now().isoformat(),
                 },
             )
+
         if action in ["play", "pause", "seek"]:
             current_time = data.get("current_time", 0)
             await self.channel_layer.group_send(

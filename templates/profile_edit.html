@@ -1,0 +1,190 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}ویرایش پروفایل | وینورا{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/profile_edit.css' %}?v=1.1">
+{% endblock %}
+
+{% block content %}
+<div class="profile-page-wrapper">
+    <div class="profile-container edit-mode">
+
+        <div class="edit-profile-header">
+            <a href="/profile/" class="btn-back"><i class="bi bi-arrow-right"></i> بازگشت به پروفایل</a>
+            <h1 class="profile-name">ویرایش حساب کاربری</h1>
+            <p class="profile-subtitle">اطلاعات هویتی و ارتباطی خود را به‌روزرسانی کنید.</p>
+        </div>
+
+        <div class="profile-details-card">
+            <div id="editAlert" class="notice-box"></div>
+
+            <form onsubmit="handleProfileUpdate(event)">
+                <!-- بخش بارگذاری تصویر آواتار -->
+                <div class="avatar-upload-section">
+                    <div class="avatar-preview-box">
+                        <img id="editAvatarPreview" src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&q=80" alt="پیش‌نمایش تصویر">
+                        <label for="editAvatarInput" class="avatar-upload-badge" title="انتخاب تصویر جدید">
+                            <i class="bi bi-camera-fill"></i>
+                        </label>
+                        <input type="file" id="editAvatarInput" class="avatar-file-hidden" accept="image/*" onchange="previewSelectedAvatar(event)">
+                    </div>
+                    <span class="avatar-hint">روی آیکون دوربین بزنید تا تصویر جدید انتخاب شود</span>
+                </div>
+
+                <div class="form-row-2">
+                    <div class="form-group-custom">
+                        <label class="field-label" for="editFirstName">نام</label>
+                        <input type="text" id="editFirstName" class="vinora-input" placeholder="نام خود را وارد کنید">
+                    </div>
+                    <div class="form-group-custom">
+                        <label class="field-label" for="editLastName">نام خانوادگی</label>
+                        <input type="text" id="editLastName" class="vinora-input" placeholder="نام خانوادگی را وارد کنید">
+                    </div>
+                </div>
+
+                <div class="form-row-2">
+                    <div class="form-group-custom">
+                        <label class="field-label" for="editUsername">نام کاربری</label>
+                        <input type="text" id="editUsername" class="vinora-input" placeholder="نام کاربری یکتا" dir="ltr" required>
+                    </div>
+                    <div class="form-group-custom">
+                        <label class="field-label" for="editGender">جنسیت</label>
+                        <select id="editGender" class="vinora-input vinora-select">
+                            <option value="male">مرد</option>
+                            <option value="female">زن</option>
+                            <option value="other">سایر</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group-custom">
+                    <label class="field-label" for="editEmail">آدرس ایمیل</label>
+                    <input type="email" id="editEmail" class="vinora-input" placeholder="example@email.com" dir="ltr">
+                </div>
+
+                <div class="form-group-custom">
+                    <label class="field-label" for="editPhone">شماره موبایل</label>
+                    <input type="text" id="editPhone" class="vinora-input" placeholder="0912..." dir="ltr">
+                </div>
+
+                <div class="edit-actions-bar">
+                    <button type="submit" id="btnSaveProfile" class="btn btn-primary btn-save-profile">
+                        <i class="bi bi-check2"></i> ذخیره تغییرات
+                    </button>
+                    <a href="/profile/" class="btn btn-outline btn-cancel-profile">انصراف</a>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    let selectedAvatarFile = null;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        const token = localStorage.getItem(AUTH_ACCESS_KEY);
+        if (!token) {
+            window.location.href = '/login/';
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/accounts/me/', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!res.ok) throw new Error();
+            const user = await res.json();
+
+            document.getElementById('editFirstName').value = user.first_name || '';
+            document.getElementById('editLastName').value = user.last_name || '';
+            document.getElementById('editUsername').value = user.username || '';
+            document.getElementById('editEmail').value = user.email || '';
+            document.getElementById('editPhone').value = user.phone_number || '';
+            if (user.gender) {
+                document.getElementById('editGender').value = user.gender;
+            }
+            if (user.avatar_url) {
+                document.getElementById('editAvatarPreview').src = user.avatar_url;
+            }
+        } catch(e) {
+            showAlert('خطا در واکشی اطلاعات فعلی حساب.', true);
+        }
+    });
+
+    function previewSelectedAvatar(event) {
+        const file = event.target.files[0];
+        if (file) {
+            selectedAvatarFile = file;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('editAvatarPreview').src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function showAlert(msg, isError = false) {
+        const alertBox = document.getElementById('editAlert');
+        alertBox.className = `notice-box ${isError ? 'error' : 'success'}`;
+        alertBox.innerText = msg;
+        alertBox.style.display = 'block';
+    }
+
+    async function handleProfileUpdate(e) {
+        e.preventDefault();
+        const token = localStorage.getItem(AUTH_ACCESS_KEY);
+        const btn = document.getElementById('btnSaveProfile');
+
+        const formData = new FormData();
+        formData.append('first_name', document.getElementById('editFirstName').value.trim());
+        formData.append('last_name', document.getElementById('editLastName').value.trim());
+        formData.append('username', document.getElementById('editUsername').value.trim());
+        formData.append('email', document.getElementById('editEmail').value.trim());
+        formData.append('phone_number', document.getElementById('editPhone').value.trim());
+        formData.append('gender', document.getElementById('editGender').value);
+
+        if (selectedAvatarFile) {
+            formData.append('avatar', selectedAvatarFile);
+        }
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bi bi-hourglass-split"></i> در حال ذخیره...';
+
+        try {
+            const res = await fetch('/api/accounts/me/', {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                showAlert('مشخصات با موفقیت به‌روزرسانی شد. در حال بازگشت...', false);
+                setTimeout(() => window.location.href = '/profile/', 900);
+            } else {
+                let errText = 'خطا در ثبت تغییرات: ';
+                if (data.username) errText += data.username[0];
+                else if (data.email) errText += data.email[0];
+                else if (data.phone_number) errText += data.phone_number[0];
+                else if (data.avatar) errText += data.avatar[0];
+                else if (data.detail) errText += data.detail;
+                else errText += JSON.stringify(data);
+                showAlert(errText, true);
+            }
+        } catch(err) {
+            showAlert('خطای شبکه در ارتباط با سرور.', true);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-check2"></i> ذخیره تغییرات';
+        }
+    }
+</script>
+{% endblock %}

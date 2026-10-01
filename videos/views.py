@@ -1,3 +1,5 @@
+import os
+import re
 from django.shortcuts import render, get_object_or_404
 from rest_framework import viewsets, filters, status
 from rest_framework.generics import ListAPIView
@@ -8,7 +10,7 @@ from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from django.db.models import Avg
 from subscriptions.permissions import IsAdminOrReadOnly
-from .models import Video, WatchHistory, Review
+from .models import Video, WatchHistory, Review, CastCrew, VideoCredit
 from .serializers import (
     VideoListSerializer,
     VideoDetailSerializer,
@@ -17,11 +19,8 @@ from .serializers import (
     ReviewSerializer,
 )
 from .permissions import CanWatchVideo
-
-
-def video_player_view(request, pk):
-    video = get_object_or_404(Video, pk=pk)
-    return render(request, "player.html", {"video": video})
+from datetime import date
+from django.http import StreamingHttpResponse
 
 
 class VideoViewSet(viewsets.ModelViewSet):
@@ -178,3 +177,79 @@ class WatchHistoryView(ListAPIView):
             .select_related("video")
             .order_by("-last_watched_at")
         )
+
+
+def movie_detail_view(request, pk):
+    video = get_object_or_404(Video, pk=pk)
+    return render(request, "movie_detail.html", {"video": video})
+
+
+def video_player_view(request, pk):
+    video = get_object_or_404(Video, pk=pk)
+    is_party = request.GET.get("party") == "true"
+    template_name = "watchparty_player.html" if is_party else "player.html"
+    return render(request, template_name, {"video": video, "is_party": is_party})
+
+
+def person_detail_view(request, pk):
+    person = get_object_or_404(CastCrew, pk=pk)
+    profile = getattr(person, "profile", None)
+
+    age = None
+    if person.birth_date:
+        today = date.today()
+        born = person.birth_date
+        age = (
+            today.year - born.year - ((today.month, today.day) < (born.month, born.day))
+        )
+
+    credits = VideoCredit.objects.filter(person=person).select_related("video")
+
+    context = {
+        "person": person,
+        "profile": profile,
+        "age": age,
+        "credits": credits,
+    }
+    return render(request, "person_detail.html", context)
+
+
+def stream_video(request, pk):
+    video = get_object_or_404(Video, pk=pk)
+    path = video.video_url.lstrip("/")
+    if not os.path.exists(path):
+        return StreamingHttpResponse(status=404)
+
+    file_size = os.path.getsize(path)
+    range_header = request.META.get("HTTP_RANGE", "").strip()
+    range_match = re.match(r"bytes=(\d+)-(\d+)?", range_header)
+
+    if range_match:
+        first_byte = int(range_match.group(1))
+        last_byte = int(range_match.group(2)) if range_match.group(2) else file_size - 1
+        length = last_byte - first_byte + 1
+
+        def file_iterator(file_path, offset, length, chunk_size=8192):
+            with open(file_path, "rb") as f:
+                f.seek(offset)
+                remaining = length
+                while remaining > 0:
+                    read_bytes = min(chunk_size, remaining)
+                    data = f.read(read_bytes)
+                    if not data:
+                        break
+                    remaining -= len(data)
+                    yield data
+
+        response = StreamingHttpResponse(
+            file_iterator(path, first_byte, length),
+            status=206,
+            content_type="video/mp4",
+        )
+        response["Content-Range"] = f"bytes {first_byte}-{last_byte}/{file_size}"
+        response["Accept-Ranges"] = "bytes"
+        response["Content-Length"] = str(length)
+        return response
+
+    # در صورت عدم ارسال Range، فایل کامل به صورت بازه‌ای استریم می‌شود
+    return StreamingHttpResponse(open(path, "rb"), content_type="video/mp4")
